@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#102846" />
+    <title>Form Pendaftaran Calon TNI AD TA 2027</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-mark">AD</div>
+      <div class="brand-copy">
+        <strong>PENDAFTARAN CALON TNI AD</strong
+        ><span>TA 2027 · Panel Operator</span>
+      </div>
+      <span class="secure-label">Form Operator</span>
+    </header>
+    <main class="page-shell">
+      <section class="intro">
+        <p class="eyebrow">SISTEM PENDATAAN CALON</p>
+        <h1>Formulir Pendaftaran</h1>
+        <p class="subheading">
+          Input data calon secara bertahap. Periksa kembali data sebelum
+          disimpan.
+        </p>
+      </section>
+      <section class="form-card">
+        <div class="progress-head">
+          <div>
+            <span id="step-kicker">LANGKAH 1 DARI 5</span>
+            <h2 id="step-title">Data diri calon</h2>
+          </div>
+          <span id="progress-percent">20%</span>
+        </div>
+        <div class="progress-track"><div id="progress-bar"></div></div>
+        <nav class="step-nav" aria-label="Langkah formulir">
+          <button class="step-pill active" data-step="0" type="button">
+            <span>1</span><b>Calon</b>
+          </button>
+          <button class="step-pill" data-step="1" type="button">
+            <span>2</span><b>Keluarga</b>
+          </button>
+          <button class="step-pill" data-step="2" type="button">
+            <span>3</span><b>Pendaftaran</b>
+          </button>
+          <button class="step-pill" data-step="3" type="button">
+            <span>4</span><b>Rapor</b>
+          </button>
+          <button class="step-pill" data-step="4" type="button">
+            <span>5</span><b>Periksa</b>
+          </button>
+        </nav>
+
+        <form id="candidate-form" novalidate>
+          <section class="step-panel active" data-panel="0">
+            <div class="section-heading">
+              <span class="section-icon">01</span>
+              <div>
+                <h3>Identitas calon</h3>
+                <p>Masukkan data sesuai dokumen resmi.</p>
+              </div>
+            </div>
+            <div class="field-grid">
+              <label class="field span-2"
+                ><span>Nama lengkap <i>*</i></span
+                ><input
+                  name="NAMA_LENGKAP"
+                  required
+                  autocomplete="name"
+                  data-uppercase
+              /></label>
+              <label class="field"
+                ><span>Tempat lahir <i>*</i></span
+                ><input name="TEMPAT_LAHIR" required data-uppercase
+              /></label>
+              <label class="field"
+                ><span>Tanggal lahir <i>*</i></span
+                ><input name="TANGGAL_LAHIR" type="date" required
+              /></label>
+              <label class="field"
+                ><span>Tinggi badan (cm)</span
+                ><input
+                  name="TINGGI_BADAN_CM"
+                  type="number"
+                  min="1"
+                  max="250"
+                  inputmode="numeric"
+              /></label>
+              <label class="field"
+                ><span>Berat badan (kg)</span
+                ><input
+                  name="BERAT_BADAN_KG"
+                  type="number"
+                  min="1"
+                  max="300"
+                  inputmode="decimal"
+              /></label>
+              <label class="field"
+                ><span>Pendidikan umum <i>*</i></span
+                ><select
+                  name="PENDIDIKAN_UMUM"
+                  required
+                  data-ref="PENDIDIKAN_UMUM"
+                >
+                  <option value="">Pilih pendidikan</option>
+                </select></label
+              >
+              <label class="field"
+                ><span>Jurusan</span
+                ><select
+                  name="JURUSAN"
+                  data-ref="JURUSAN"
+                  data-other-target="jurusan-lain"
+                >
+                  <option value="">Pilih jurusan</option></select
+                ><input
+                  id="jurusan-lain"
+                  class="conditional-input hidden"
+                  placeholder="Tulis jurusan"
+                  data-uppercase
+              /></label>
+              <label class="field"
+                ><span>Tahun lulus</span
+                ><select name="TAHUN_LULUS" id="tahun-lulus">
+                  <option value="">Pilih tahun</option>
+                </select></label
+              >
+              <label class="field"
+                ><span>Nama sekolah <i>*</i></span
+                ><input name="NAMA_SEKOLAH" required data-uppercase
+              /></label>
+              <label class="field span-2"
+                ><span>Alamat sekolah</span
+                ><textarea
+                  name="ALAMAT_SEKOLAH"
+                  rows="2"
+                  data-uppercase
+                ></textarea>
+              </label>
+              <label class="field"
+                ><span>Agama <i>*</i></span
+                ><select name="AGAMA" required data-ref="AGAMA">
+                  <option value="">Pilih agama</option>
+                </select></label
+              >
+              <label class="field"
+                ><span>Suku</span
+                ><select
+                  name="SUKU"
+                  data-ref="SUKU"
+                  data-other-target="suku-lain"
+                >
+                  <option value="">Pilih suku</option></select
+                ><input
+                  id="suku-lain"
+                  class="conditional-input hidden"
+                  placeholder="Tulis suku"
+                  data-uppercase
+              /></label>
+              <label class="field"
+                ><span>Nomor KK <i>*</i></span
+                ><input
+                  name="NOMOR_KK"
+                  required
+                  inputmode="numeric"
+                  maxlength="16"
+                  minlength="16"
+                  pattern="[0-9]{16}"
+                  autocomplete="off"
+                /><small>16 digit, disimpan sebagai teks.</small></label
+              >
+              <label class="field"
+                ><span>NIK <i>*</i></span
+                ><input
+                  name="NIK"
+                  required
+                  inputmode="numeric"
+                  maxlength="16"
+                  minlength="16"
+                  pattern="[0-9]{16}"
+                  autocomplete="off"
+                /><small>16 digit dan harus unik.</small></label
+              >
+              <label class="field"
+                ><span>Nomor BPJS calon <i>*</i></span
+                ><input
+                  name="NOMOR_BPJS"
+                  required
+                  inputmode="numeric"
+                  autocomplete="off"
+              /></label>
+              <label class="field"
+                ><span>Tinggal bersama <i>*</i></span
+                ><select
+                  name="TINGGAL_BERSAMA"
+                  required
+                  data-ref="TINGGAL_BERSAMA"
+                >
+                  <option value="">Pilih</option>
+                </select></label
+              >
+              <label class="field"
+                ><span>Alamat calon sesuai KTP <i>*</i></span
+                ><textarea
+                  name="ALAMAT_CALON"
+                  required
+                  rows="2"
+                  data-uppercase
+                ></textarea>
+              </label>
+              <label class="field"
+                ><span>Nomor HP calon</span
+                ><input
+                  name="NOMOR_HP_CALON"
+                  inputmode="tel"
+                  autocomplete="tel"
+              /></label>
+              <label class="field"
+                ><span>Nomor HP orang tua/wali</span
+                ><input name="NOMOR_HP_ORANG_TUA_WALI" inputmode="tel"
+              /></label>
+              <label class="field"
+                ><span>Email calon aktif</span
+                ><input name="EMAIL_CALON" type="email" autocomplete="email"
+              /></label>
+              <label class="field"
+                ><span>NISN SD</span><input name="NISN_SD" inputmode="numeric"
+              /></label>
+              <label class="field"
+                ><span>NISN SMP</span
+                ><input name="NISN_SMP" inputmode="numeric"
+              /></label>
+              <label class="field"
+                ><span>NISN SMA/sederajat</span
+                ><input name="NISN_SMA" inputmode="numeric"
+              /></label>
+              <label class="field"
+                ><span>Facebook</span><input name="AKUN_FACEBOOK"
+              /></label>
+              <label class="field"
+                ><span>Instagram</span><input name="AKUN_INSTAGRAM"
+              /></label>
+              <label class="field"
+                ><span>TikTok</span><input name="AKUN_TIKTOK"
+              /></label>
+              <label class="field"
+                ><span>Twitter/X</span><input name="AKUN_TWITTER"
+              /></label>
+            </div>
+          </section>
+
+          <section class="step-panel" data-panel="1">
+            <div class="section-heading">
+              <span class="section-icon">02</span>
+              <div>
+                <h3>Data keluarga</h3>
+                <p>
+                  Bagian pangkat, jabatan, dan kesatuan muncul sesuai pekerjaan.
+                </p>
+              </div>
+            </div>
+            <div class="subsection">
+              <h4>Ayah kandung</h4>
+              <div class="field-grid">
+                <label class="field"
+                  ><span>Nama ayah <i>*</i></span
+                  ><input name="NAMA_BAPAK_KANDUNG" required data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Pekerjaan ayah <i>*</i></span
+                  ><select name="PEKERJAAN_BAPAK" required data-ref="PEKERJAAN">
+                    <option value="">Pilih pekerjaan</option>
+                  </select></label
+                >
+                <label class="field conditional-job hidden"
+                  ><span>Pangkat ayah</span
+                  ><input name="PANGKAT_BAPAK" data-uppercase
+                /></label>
+                <label class="field conditional-job hidden"
+                  ><span>Jabatan ayah</span
+                  ><input name="JABATAN_BAPAK" data-uppercase
+                /></label>
+                <label class="field conditional-job hidden"
+                  ><span>Kesatuan/instansi ayah</span
+                  ><input name="KESATUAN_BAPAK" data-uppercase
+                /></label>
+                <label class="field span-2"
+                  ><span>Alamat ayah sesuai KTP</span
+                  ><textarea
+                    name="ALAMAT_BAPAK"
+                    rows="2"
+                    data-uppercase
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+            <div class="subsection">
+              <h4>Ibu kandung</h4>
+              <div class="field-grid">
+                <label class="field"
+                  ><span>Nama ibu <i>*</i></span
+                  ><input name="NAMA_IBU_KANDUNG" required data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Pekerjaan ibu <i>*</i></span
+                  ><select name="PEKERJAAN_IBU" required data-ref="PEKERJAAN">
+                    <option value="">Pilih pekerjaan</option>
+                  </select></label
+                >
+                <label class="field conditional-job hidden"
+                  ><span>Pangkat ibu</span
+                  ><input name="PANGKAT_IBU" data-uppercase
+                /></label>
+                <label class="field conditional-job hidden"
+                  ><span>Jabatan ibu</span
+                  ><input name="JABATAN_IBU" data-uppercase
+                /></label>
+                <label class="field conditional-job hidden"
+                  ><span>Kesatuan/instansi ibu</span
+                  ><input name="KESATUAN_IBU" data-uppercase
+                /></label>
+                <label class="field span-2"
+                  ><span>Alamat ibu sesuai KTP</span
+                  ><textarea
+                    name="ALAMAT_IBU"
+                    rows="2"
+                    data-uppercase
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+            <div class="subsection" id="wali-section">
+              <h4>Wali</h4>
+              <div class="field-grid">
+                <label class="field"
+                  ><span>Nama wali</span><input name="NAMA_WALI" data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Pekerjaan wali</span
+                  ><input name="PEKERJAAN_WALI" data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Pangkat wali</span
+                  ><input name="PANGKAT_WALI" data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Jabatan wali</span
+                  ><input name="JABATAN_WALI" data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Kesatuan/instansi wali</span
+                  ><input name="KESATUAN_WALI" data-uppercase
+                /></label>
+                <label class="field span-2"
+                  ><span>Alamat wali sesuai KTP</span
+                  ><textarea
+                    name="ALAMAT_WALI"
+                    rows="2"
+                    data-uppercase
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+            <div class="subsection">
+              <h4>Kakek dan nenek</h4>
+              <div class="field-grid">
+                <label class="field"
+                  ><span>Nama kakek dari ayah <i>*</i></span
+                  ><input name="NAMA_KAKEK_AYAH" required data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Nama nenek dari ayah <i>*</i></span
+                  ><input name="NAMA_NENEK_AYAH" required data-uppercase
+                /></label>
+                <label class="field span-2"
+                  ><span>Alamat kakek/nenek dari ayah <i>*</i></span
+                  ><textarea
+                    name="ALAMAT_KAKEK_NENEK_AYAH"
+                    required
+                    rows="2"
+                    data-uppercase
+                  ></textarea>
+                </label>
+                <label class="field"
+                  ><span>Nama kakek dari ibu <i>*</i></span
+                  ><input name="NAMA_KAKEK_IBU" required data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Nama nenek dari ibu <i>*</i></span
+                  ><input name="NAMA_NENEK_IBU" required data-uppercase
+                /></label>
+                <label class="field span-2"
+                  ><span>Alamat kakek/nenek dari ibu <i>*</i></span
+                  ><textarea
+                    name="ALAMAT_KAKEK_NENEK_IBU"
+                    required
+                    rows="2"
+                    data-uppercase
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+            <div class="subsection">
+              <h4>Babinsa</h4>
+              <div class="field-grid">
+                <label class="field"
+                  ><span>Pangkat Babinsa</span
+                  ><input name="PANGKAT_BABINSA" data-uppercase
+                /></label>
+                <label class="field"
+                  ><span>Nama Babinsa</span
+                  ><input name="NAMA_BABINSA" data-uppercase
+                /></label>
+              </div>
+            </div>
+          </section>
+
+          <section class="step-panel" data-panel="2">
+            <div class="section-heading">
+              <span class="section-icon">03</span>
+              <div>
+                <h3>Informasi pendaftaran</h3>
+                <p>Nomor pendaftaran dibuat otomatis saat data disimpan.</p>
+              </div>
+            </div>
+            <div class="field-grid">
+              <label class="field"
+                ><span>Jenis pendaftaran <i>*</i></span
+                ><select
+                  name="JENIS_PENDAFTARAN"
+                  required
+                  data-ref="JENIS_PENDAFTARAN"
+                >
+                  <option value="">Pilih jenis</option>
+                </select></label
+              >
+              <label class="field"
+                ><span>Kodim sesuai domisili <i>*</i></span
+                ><input name="KODIM_DOMISILI" required data-uppercase
+              /></label>
+              <label class="field"
+                ><span>Calon daftar TNI ke berapa <i>*</i></span
+                ><input
+                  name="JUMLAH_PENDAFTARAN_TNI"
+                  type="number"
+                  min="1"
+                  step="1"
+                  required
+              /></label>
+              <label class="field"
+                ><span>Kriteria prestasi nasional</span
+                ><select
+                  name="KRITERIA_PRESTASI_NASIONAL"
+                  data-ref="KRITERIA_PRESTASI_NASIONAL"
+                >
+                  <option value="">Pilih jika ada</option>
+                </select></label
+              >
+              <label class="field span-2"
+                ><span>Motivasi menjadi prajurit</span
+                ><textarea name="MOTIVASI_CALON" rows="3"></textarea>
+              </label>
+              <label class="field"
+                ><span>Hobi</span><input name="HOBI_CALON"
+              /></label>
+              <label class="field"
+                ><span>Pernah bekerja di</span><input name="RIWAYAT_PEKERJAAN"
+              /></label>
+              <label class="field"
+                ><span>Mempunyai keahlian?</span
+                ><select name="MEMILIKI_KEAHLIAN" id="memiliki-keahlian">
+                  <option value="">Pilih</option>
+                  <option>Ya</option>
+                  <option>Tidak</option>
+                </select></label
+              >
+              <label class="field hidden" id="detail-keahlian-wrap"
+                ><span>Detail keahlian</span><input name="DETAIL_KEAHLIAN"
+              /></label>
+            </div>
+          </section>
+
+          <section class="step-panel" data-panel="3">
+            <div class="section-heading">
+              <span class="section-icon">04</span>
+              <div>
+                <h3>Nilai rapor</h3>
+                <p>
+                  Isi nilai P dan K sesuai blanko rapor. Urutan kolom sumber
+                  perlu dicocokkan sebelum digunakan untuk impor massal.
+                </p>
+              </div>
+            </div>
+            <div class="notice">
+              <strong>Catatan:</strong> nilai kosong tidak otomatis diubah
+              menjadi 0. Pastikan angka disalin sesuai dokumen.
+            </div>
+            <div id="rapor-container"></div>
+          </section>
+
+          <section class="step-panel" data-panel="4">
+            <div class="section-heading">
+              <span class="section-icon">05</span>
+              <div>
+                <h3>Periksa data</h3>
+                <p>Tinjau ringkasan sebelum menyimpan ke spreadsheet.</p>
+              </div>
+            </div>
+            <div id="review-summary" class="review-summary"></div>
+            <label class="confirm-check"
+              ><input type="checkbox" id="confirm-data" /> Saya sudah memeriksa
+              data yang diinput dan sesuai dengan dokumen sumber.</label
+            >
+            <div class="notice">
+              Penyimpanan hanya dilakukan setelah tombol Simpan ditekan. Nomor
+              pendaftaran dan ID dibuat oleh backend.
+            </div>
+          </section>
+
+          <div class="form-alert hidden" id="form-alert" role="alert"></div>
+          <div class="form-actions">
+            <button class="btn btn-quiet" id="prev-btn" type="button" disabled>
+              Kembali
+            </button>
+            <span class="autosave-note" id="save-status">Belum disimpan</span>
+            <button class="btn btn-primary" id="next-btn" type="button">
+              Lanjut <span>→</span>
+            </button>
+            <button class="btn btn-primary hidden" id="save-btn" type="submit">
+              Simpan pendaftaran
+            </button>
+          </div>
+        </form>
+      </section>
+      <footer>
+        Database Calon TNI AD TA 2027 <span>·</span> Panel Operator
+      </footer>
+    </main>
+    <div class="toast hidden" id="toast" role="status"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

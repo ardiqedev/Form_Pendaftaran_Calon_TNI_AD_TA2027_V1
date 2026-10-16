@@ -19,6 +19,7 @@ const semesters = ["I", "II"];
 function field(name) {
   return form.elements.namedItem(name);
 }
+
 function normalizeCategory(value) {
   return String(value || "")
     .trim()
@@ -170,6 +171,7 @@ function buildYears() {
     select.appendChild(opt);
   }
 }
+
 function buildRapor() {
   const container = document.getElementById("rapor-container");
   container.innerHTML = "";
@@ -197,6 +199,7 @@ function buildRapor() {
     }),
   );
 }
+
 function setConditionalField(wrapper, show, required = false) {
   wrapper.classList.toggle("hidden", !show);
   wrapper.querySelectorAll("input,select,textarea").forEach((el) => {
@@ -396,6 +399,7 @@ function showStep(step) {
   if (state.step === 4) renderReview();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
 function validateStep(step) {
   const panel = panels[step];
   let firstInvalid = null;

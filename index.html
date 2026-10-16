@@ -12,12 +12,78 @@
       <div class="brand-mark">AD</div>
       <div class="brand-copy">
         <strong>PENDAFTARAN CALON TNI AD</strong
-        ><span>TA 2027 · Panel Operator</span>
+        ><span>TA 2027 · Pendaftaran Calon</span>
       </div>
       <span class="secure-label">Form Operator</span>
     </header>
     <main class="page-shell">
-      <section class="intro">
+      <section class="welcome-card" id="welcome-page">
+        <div class="welcome-emblem">AD</div>
+
+        <p class="eyebrow">SISTEM PENDAFTARAN CALON</p>
+
+        <h1>Selamat Datang, Calon Prajurit TNI AD</h1>
+
+        <p class="welcome-description">Form Pendaftaran Calon TNI AD TA 2027</p>
+
+        <p class="welcome-text">
+          Selamat datang! Silakan lengkapi formulir pendaftaran ini dengan
+          tenang dan teliti. Isi setiap bagian sesuai dengan data pada dokumen
+          resmi yang kamu miliki. Pastikan seluruh informasi yang diberikan
+          benar agar proses pendataan berjalan dengan lancar.
+        </p>
+
+        <div class="welcome-info">
+          <div class="welcome-info-item">
+            <span class="welcome-info-number">01</span>
+            <div>
+              <strong>Data diri dan keluarga</strong>
+              <p>Lengkapi identitas diri, alamat, dan informasi keluarga.</p>
+            </div>
+          </div>
+
+          <div class="welcome-info-item">
+            <span class="welcome-info-number">02</span>
+            <div>
+              <strong>Informasi pendaftaran</strong>
+              <p>Isi informasi pendaftaran sesuai dengan data yang diminta.</p>
+            </div>
+          </div>
+
+          <div class="welcome-info-item">
+            <span class="welcome-info-number">03</span>
+            <div>
+              <strong>Nilai rapor dan pemeriksaan</strong>
+              <p>
+                Lengkapi nilai rapor, lalu periksa kembali data sebelum dikirim.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-notice">
+          <strong>Persiapan Sebelum Memulai</strong>
+          <p>
+            Siapkan dokumen yang diperlukan agar kamu lebih mudah mengisi
+            formulir. Periksa kembali setiap informasi sebelum mengirimkan data
+            pendaftaran.
+          </p>
+        </div>
+
+        <button
+          class="btn btn-primary welcome-start"
+          id="start-registration-btn"
+          type="button"
+        >
+          Mulai Pendaftaran <span>→</span>
+        </button>
+
+        <p class="welcome-footnote">
+          Isi data dengan benar dan pastikan sesuai dengan dokumen resmi.
+        </p>
+      </section>
+
+      <section class="intro" id="registration-intro" hidden>
         <p class="eyebrow">SISTEM PENDATAAN CALON</p>
         <h1>Formulir Pendaftaran</h1>
         <p class="subheading">
@@ -25,7 +91,7 @@
           disimpan.
         </p>
       </section>
-      <section class="form-card">
+      <section class="form-card" id="registration-form-card" hidden>
         <div class="progress-head">
           <div>
             <span id="step-kicker">LANGKAH 1 DARI 5</span>
@@ -200,15 +266,83 @@
                   <option value="">Pilih</option>
                 </select></label
               >
-              <label class="field"
-                ><span>Alamat calon sesuai KTP <i>*</i></span
-                ><textarea
-                  name="ALAMAT_CALON"
-                  required
-                  rows="2"
-                  data-uppercase
-                ></textarea>
-              </label>
+
+              <div class="field-group alamat-calon-group">
+                <span class="field-label">
+                  Alamat calon sesuai KTP <i>*</i>
+                </span>
+
+                <label class="field">
+                  <span>Provinsi <i>*</i></span>
+                  <input
+                    type="text"
+                    id="provinsi-calon"
+                    placeholder="Ketik nama provinsi..."
+                    autocomplete="off"
+                    required
+                  />
+                  <div
+                    id="provinsi-calon-options"
+                    class="autocomplete-options hidden"
+                  ></div>
+                </label>
+
+                <label class="field">
+                  <span>Kabupaten/Kota <i>*</i></span>
+                  <input
+                    type="text"
+                    id="kabupaten-calon"
+                    placeholder="Pilih provinsi terlebih dahulu"
+                    autocomplete="off"
+                    required
+                    disabled
+                  />
+                  <div
+                    id="kabupaten-calon-options"
+                    class="autocomplete-options hidden"
+                  ></div>
+                  <small id="kabupaten-calon-info">
+                    Pilih provinsi terlebih dahulu.
+                  </small>
+                </label>
+
+                <label class="field">
+                  <span>Alamat jalan / dusun / nomor rumah <i>*</i></span>
+                  <textarea
+                    id="detail-alamat-calon"
+                    rows="2"
+                    placeholder="Contoh: Jl. Merdeka No. 10, Dusun Krajan"
+                    data-uppercase
+                    required
+                  ></textarea>
+                </label>
+
+                <div class="field-row">
+                  <label class="field">
+                    <span>RT</span>
+                    <input
+                      type="text"
+                      id="rt-calon"
+                      placeholder="Contoh: 001"
+                      inputmode="numeric"
+                    />
+                  </label>
+
+                  <label class="field">
+                    <span>RW</span>
+                    <input
+                      type="text"
+                      id="rw-calon"
+                      placeholder="Contoh: 002"
+                      inputmode="numeric"
+                    />
+                  </label>
+                </div>
+
+                <!-- Field ini mempertahankan kontrak data backend -->
+                <input type="hidden" name="ALAMAT_CALON" />
+              </div>
+
               <label class="field"
                 ><span>Nomor HP calon</span
                 ><input
@@ -273,6 +407,17 @@
                     <option value="">Pilih pekerjaan</option>
                   </select></label
                 >
+
+                <label class="field hidden" id="pekerjaan-bapak-lainnya-wrap">
+                  <span>Nama pekerjaan ayah <i>*</i></span>
+                  <input
+                    type="text"
+                    id="pekerjaan-bapak-lainnya"
+                    data-uppercase
+                    placeholder="Masukkan nama pekerjaan ayah"
+                  />
+                </label>
+
                 <label class="field conditional-job hidden"
                   ><span>Pangkat ayah</span
                   ><input name="PANGKAT_BAPAK" data-uppercase
@@ -285,14 +430,67 @@
                   ><span>Kesatuan/instansi ayah</span
                   ><input name="KESATUAN_BAPAK" data-uppercase
                 /></label>
-                <label class="field span-2"
-                  ><span>Alamat ayah sesuai KTP</span
-                  ><textarea
-                    name="ALAMAT_BAPAK"
-                    rows="2"
-                    data-uppercase
-                  ></textarea>
-                </label>
+                <!-- ALAMAT BAPAK -->
+                <div
+                  class="field span-2 alamat-keluarga-group"
+                  data-alamat-group="BAPAK"
+                >
+                  <span class="field-label">Alamat ayah sesuai KTP</span>
+
+                  <label class="field">
+                    <span>Provinsi</span>
+                    <input
+                      type="text"
+                      id="provinsi-bapak"
+                      autocomplete="off"
+                      placeholder="Ketik nama provinsi..."
+                    />
+                    <div
+                      id="provinsi-bapak-options"
+                      class="autocomplete-options hidden"
+                    ></div>
+                  </label>
+
+                  <label class="field">
+                    <span>Kabupaten/Kota</span>
+                    <input
+                      type="text"
+                      id="kabupaten-bapak"
+                      autocomplete="off"
+                      placeholder="Pilih provinsi terlebih dahulu"
+                      disabled
+                    />
+                    <div
+                      id="kabupaten-bapak-options"
+                      class="autocomplete-options hidden"
+                    ></div>
+                    <small id="kabupaten-bapak-info"
+                      >Pilih provinsi terlebih dahulu.</small
+                    >
+                  </label>
+
+                  <label class="field">
+                    <span>Jalan / Dusun / Nomor Rumah</span>
+                    <textarea
+                      id="detail-alamat-bapak"
+                      rows="2"
+                      data-uppercase
+                    ></textarea>
+                  </label>
+
+                  <div class="field-row">
+                    <label class="field">
+                      <span>RT</span>
+                      <input id="rt-bapak" inputmode="numeric" />
+                    </label>
+                    <label class="field">
+                      <span>RW</span>
+                      <input id="rw-bapak" inputmode="numeric" />
+                    </label>
+                  </div>
+
+                  <input type="hidden" name="ALAMAT_BAPAK" />
+                </div>
               </div>
             </div>
             <div class="subsection">
@@ -308,6 +506,17 @@
                     <option value="">Pilih pekerjaan</option>
                   </select></label
                 >
+
+                <label class="field hidden" id="pekerjaan-ibu-lainnya-wrap">
+                  <span>Nama pekerjaan ibu <i>*</i></span>
+                  <input
+                    type="text"
+                    id="pekerjaan-ibu-lainnya"
+                    data-uppercase
+                    placeholder="Masukkan nama pekerjaan ibu"
+                  />
+                </label>
+
                 <label class="field conditional-job hidden"
                   ><span>Pangkat ibu</span
                   ><input name="PANGKAT_IBU" data-uppercase
@@ -320,97 +529,225 @@
                   ><span>Kesatuan/instansi ibu</span
                   ><input name="KESATUAN_IBU" data-uppercase
                 /></label>
-                <label class="field span-2"
-                  ><span>Alamat ibu sesuai KTP</span
-                  ><textarea
-                    name="ALAMAT_IBU"
-                    rows="2"
-                    data-uppercase
-                  ></textarea>
-                </label>
-              </div>
-            </div>
-            <div class="subsection" id="wali-section">
-              <h4>Wali</h4>
-              <div class="field-grid">
-                <label class="field"
-                  ><span>Nama wali</span><input name="NAMA_WALI" data-uppercase
-                /></label>
-                <label class="field"
-                  ><span>Pekerjaan wali</span
-                  ><input name="PEKERJAAN_WALI" data-uppercase
-                /></label>
-                <label class="field"
-                  ><span>Pangkat wali</span
-                  ><input name="PANGKAT_WALI" data-uppercase
-                /></label>
-                <label class="field"
-                  ><span>Jabatan wali</span
-                  ><input name="JABATAN_WALI" data-uppercase
-                /></label>
-                <label class="field"
-                  ><span>Kesatuan/instansi wali</span
-                  ><input name="KESATUAN_WALI" data-uppercase
-                /></label>
-                <label class="field span-2"
-                  ><span>Alamat wali sesuai KTP</span
-                  ><textarea
-                    name="ALAMAT_WALI"
-                    rows="2"
-                    data-uppercase
-                  ></textarea>
-                </label>
+                <!-- ALAMAT IBU -->
+                <div
+                  class="field span-2 alamat-keluarga-group"
+                  data-alamat-group="IBU"
+                >
+                  <span class="field-label">Alamat ibu sesuai KTP</span>
+
+                  <label class="field">
+                    <span>Provinsi</span>
+                    <input
+                      type="text"
+                      id="provinsi-ibu"
+                      autocomplete="off"
+                      placeholder="Ketik nama provinsi..."
+                    />
+                    <div
+                      id="provinsi-ibu-options"
+                      class="autocomplete-options hidden"
+                    ></div>
+                  </label>
+
+                  <label class="field">
+                    <span>Kabupaten/Kota</span>
+                    <input
+                      type="text"
+                      id="kabupaten-ibu"
+                      autocomplete="off"
+                      placeholder="Pilih provinsi terlebih dahulu"
+                      disabled
+                    />
+                    <div
+                      id="kabupaten-ibu-options"
+                      class="autocomplete-options hidden"
+                    ></div>
+                    <small id="kabupaten-ibu-info"
+                      >Pilih provinsi terlebih dahulu.</small
+                    >
+                  </label>
+
+                  <label class="field">
+                    <span>Jalan / Dusun / Nomor Rumah</span>
+                    <textarea
+                      id="detail-alamat-ibu"
+                      rows="2"
+                      data-uppercase
+                    ></textarea>
+                  </label>
+
+                  <div class="field-row">
+                    <label class="field">
+                      <span>RT</span>
+                      <input id="rt-ibu" inputmode="numeric" />
+                    </label>
+                    <label class="field">
+                      <span>RW</span>
+                      <input id="rw-ibu" inputmode="numeric" />
+                    </label>
+                  </div>
+
+                  <input type="hidden" name="ALAMAT_IBU" />
+                </div>
               </div>
             </div>
             <div class="subsection">
-              <h4>Kakek dan nenek</h4>
+              <h4>Keluarga dari Ayah</h4>
               <div class="field-grid">
-                <label class="field"
-                  ><span>Nama kakek dari ayah <i>*</i></span
-                  ><input name="NAMA_KAKEK_AYAH" required data-uppercase
-                /></label>
-                <label class="field"
-                  ><span>Nama nenek dari ayah <i>*</i></span
-                  ><input name="NAMA_NENEK_AYAH" required data-uppercase
-                /></label>
-                <label class="field span-2"
-                  ><span>Alamat kakek/nenek dari ayah <i>*</i></span
-                  ><textarea
-                    name="ALAMAT_KAKEK_NENEK_AYAH"
-                    required
-                    rows="2"
-                    data-uppercase
-                  ></textarea>
+                <label class="field">
+                  <span>Nama kakek dari ayah <i>*</i></span>
+                  <input name="NAMA_KAKEK_AYAH" required data-uppercase />
                 </label>
-                <label class="field"
-                  ><span>Nama kakek dari ibu <i>*</i></span
-                  ><input name="NAMA_KAKEK_IBU" required data-uppercase
-                /></label>
-                <label class="field"
-                  ><span>Nama nenek dari ibu <i>*</i></span
-                  ><input name="NAMA_NENEK_IBU" required data-uppercase
-                /></label>
-                <label class="field span-2"
-                  ><span>Alamat kakek/nenek dari ibu <i>*</i></span
-                  ><textarea
-                    name="ALAMAT_KAKEK_NENEK_IBU"
+                <label class="field">
+                  <span>Nama nenek dari ayah <i>*</i></span>
+                  <input name="NAMA_NENEK_AYAH" required data-uppercase />
+                </label>
+                <label class="field span-2">
+                  <span>Alamat kakek dan nenek dari ayah <i>*</i></span>
+                  <textarea
+                    name="ALAMAT_KAKEK_NENEK_AYAH"
+                    rows="3"
                     required
-                    rows="2"
                     data-uppercase
                   ></textarea>
                 </label>
               </div>
             </div>
+
+            <div class="subsection">
+              <h4>Keluarga dari Ibu</h4>
+              <div class="field-grid">
+                <label class="field">
+                  <span>Nama kakek dari ibu <i>*</i></span>
+                  <input name="NAMA_KAKEK_IBU" required data-uppercase />
+                </label>
+                <label class="field">
+                  <span>Nama nenek dari ibu <i>*</i></span>
+                  <input name="NAMA_NENEK_IBU" required data-uppercase />
+                </label>
+                <label class="field span-2">
+                  <span>Alamat kakek dan nenek dari ibu <i>*</i></span>
+                  <textarea
+                    name="ALAMAT_KAKEK_NENEK_IBU"
+                    rows="3"
+                    required
+                    data-uppercase
+                  ></textarea>
+                </label>
+              </div>
+            </div>
+
+            <div class="subsection" id="wali-section">
+              <h4>Wali</h4>
+              <div class="field-grid">
+                <label class="field">
+                  <span>Nama wali</span>
+                  <input name="NAMA_WALI" data-uppercase />
+                </label>
+
+                <label class="field">
+                  <span>Pekerjaan wali</span>
+                  <select name="PEKERJAAN_WALI" data-ref="PEKERJAAN">
+                    <option value="">Pilih pekerjaan</option>
+                  </select>
+                </label>
+
+                <label class="field hidden" id="pekerjaan-wali-lainnya-wrap">
+                  <span>Nama pekerjaan wali <i>*</i></span>
+                  <input
+                    type="text"
+                    id="pekerjaan-wali-lainnya"
+                    data-uppercase
+                    placeholder="Masukkan nama pekerjaan wali"
+                  />
+                </label>
+
+                <label class="field conditional-job hidden">
+                  <span>Pangkat wali</span>
+                  <input name="PANGKAT_WALI" data-uppercase />
+                </label>
+
+                <label class="field conditional-job hidden">
+                  <span>Jabatan wali</span>
+                  <input name="JABATAN_WALI" data-uppercase />
+                </label>
+
+                <label class="field conditional-job hidden">
+                  <span>Kesatuan/instansi wali</span>
+                  <input name="KESATUAN_WALI" data-uppercase />
+                </label>
+
+                <!-- ALAMAT WALI -->
+                <div
+                  class="field span-2 alamat-keluarga-group"
+                  data-alamat-group="WALI"
+                >
+                  <span class="field-label">Alamat wali sesuai KTP</span>
+
+                  <label class="field">
+                    <span>Provinsi</span>
+                    <input
+                      type="text"
+                      id="provinsi-wali"
+                      autocomplete="off"
+                      placeholder="Ketik nama provinsi..."
+                    />
+                    <div
+                      id="provinsi-wali-options"
+                      class="autocomplete-options hidden"
+                    ></div>
+                  </label>
+
+                  <label class="field">
+                    <span>Kabupaten/Kota</span>
+                    <input
+                      type="text"
+                      id="kabupaten-wali"
+                      autocomplete="off"
+                      placeholder="Pilih provinsi terlebih dahulu"
+                      disabled
+                    />
+                    <div
+                      id="kabupaten-wali-options"
+                      class="autocomplete-options hidden"
+                    ></div>
+                    <small id="kabupaten-wali-info"
+                      >Pilih provinsi terlebih dahulu.</small
+                    >
+                  </label>
+
+                  <label class="field">
+                    <span>Jalan / Dusun / Nomor Rumah</span>
+                    <textarea
+                      id="detail-alamat-wali"
+                      rows="2"
+                      data-uppercase
+                    ></textarea>
+                  </label>
+
+                  <div class="field-row">
+                    <label class="field">
+                      <span>RT</span>
+                      <input id="rt-wali" inputmode="numeric" />
+                    </label>
+                    <label class="field">
+                      <span>RW</span>
+                      <input id="rw-wali" inputmode="numeric" />
+                    </label>
+                  </div>
+
+                  <input type="hidden" name="ALAMAT_WALI" />
+                </div>
+              </div>
+            </div>
+
             <div class="subsection">
               <h4>Babinsa</h4>
               <div class="field-grid">
                 <label class="field"
-                  ><span>Pangkat Babinsa</span
+                  ><span>Nama/Pangkat Babinsa</span
                   ><input name="PANGKAT_BABINSA" data-uppercase
-                /></label>
-                <label class="field"
-                  ><span>Nama Babinsa</span
-                  ><input name="NAMA_BABINSA" data-uppercase
                 /></label>
               </div>
             </div>
@@ -435,10 +772,81 @@
                   <option value="">Pilih jenis</option>
                 </select></label
               >
-              <label class="field"
-                ><span>Kodim sesuai domisili <i>*</i></span
-                ><input name="KODIM_DOMISILI" required data-uppercase
-              /></label>
+
+              <label class="field">
+                <span>Kodim sesuai domisili <i>*</i></span>
+                <select name="KODIM_DOMISILI" required>
+                  <option value="">Pilih Kodim sesuai domisili</option>
+                  <option value="KODIM 0818/MALANG-BATU">
+                    KODIM 0818/MALANG-BATU
+                  </option>
+                  <option value="KODIM 0819/PASURUAN">
+                    KODIM 0819/PASURUAN
+                  </option>
+                  <option value="KODIM 0820/PROBOLINGGO">
+                    KODIM 0820/PROBOLINGGO
+                  </option>
+                  <option value="KODIM 0821/LUMAJANG">
+                    KODIM 0821/LUMAJANG
+                  </option>
+                  <option value="KODIM 0822/BONDOWOSO">
+                    KODIM 0822/BONDOWOSO
+                  </option>
+                  <option value="KODIM 0823/SITUBONDO">
+                    KODIM 0823/SITUBONDO
+                  </option>
+                  <option value="KODIM 0824/JEMBER">KODIM 0824/JEMBER</option>
+                  <option value="KODIM 0825/BANYUWANGI">
+                    KODIM 0825/BANYUWANGI
+                  </option>
+                  <option value="KODIM 0833/KOTA MALANG">
+                    KODIM 0833/KOTA MALANG
+                  </option>
+                  <option value="KODIM 0801/PACITAN">KODIM 0801/PACITAN</option>
+                  <option value="KODIM 0802/PONOROGO">
+                    KODIM 0802/PONOROGO
+                  </option>
+                  <option value="KODIM 0803/MADIUN">KODIM 0803/MADIUN</option>
+                  <option value="KODIM 0804/MAGETAN">KODIM 0804/MAGETAN</option>
+                  <option value="KODIM 0805/NGAWI">KODIM 0805/NGAWI</option>
+                  <option value="KODIM 0806/TRENGGALEK">
+                    KODIM 0806/TRENGGALEK
+                  </option>
+                  <option value="KODIM 0807/TULUNGAGUNG">
+                    KODIM 0807/TULUNGAGUNG
+                  </option>
+                  <option value="KODIM 0808/BLITAR">KODIM 0808/BLITAR</option>
+                  <option value="KODIM 0810/NGANJUK">KODIM 0810/NGANJUK</option>
+                  <option value="KODIM 0809/KEDIRI">KODIM 0809/KEDIRI</option>
+                  <option value="KODIM 0811/TUBAN">KODIM 0811/TUBAN</option>
+                  <option value="KODIM 0812/LAMONGAN">
+                    KODIM 0812/LAMONGAN
+                  </option>
+                  <option value="KODIM 0813/BOJONEGORO">
+                    KODIM 0813/BOJONEGORO
+                  </option>
+                  <option value="KODIM 0814/JOMBANG">KODIM 0814/JOMBANG</option>
+                  <option value="KODIM 0815/MOJOKERTO">
+                    KODIM 0815/MOJOKERTO
+                  </option>
+                  <option value="KODIM 0816/SIDOARJO">
+                    KODIM 0816/SIDOARJO
+                  </option>
+                  <option value="KODIM 0817/GRESIK">KODIM 0817/GRESIK</option>
+                  <option value="KODIM 0826/PAMEKASAN">
+                    KODIM 0826/PAMEKASAN
+                  </option>
+                  <option value="KODIM 0827/SUMENEP">KODIM 0827/SUMENEP</option>
+                  <option value="KODIM 0828/SAMPANG">KODIM 0828/SAMPANG</option>
+                  <option value="KODIM 0829/BANGKALAN">
+                    KODIM 0829/BANGKALAN
+                  </option>
+                  <option value="KODIM 0830/SURABAYA">
+                    KODIM 0830/SURABAYA
+                  </option>
+                </select>
+              </label>
+
               <label class="field"
                 ><span>Calon daftar TNI ke berapa <i>*</i></span
                 ><input
@@ -538,6 +946,8 @@
       </footer>
     </main>
     <div class="toast hidden" id="toast" role="status"></div>
+    <script src="wilayah-indonesia.js"></script>
+    <script src="ConfirmEngine.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

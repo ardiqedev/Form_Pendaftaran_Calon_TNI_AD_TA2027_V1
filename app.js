@@ -1,6 +1,6 @@
 /* Form Pendaftaran Calon TNI AD TA 2027 — operator, multi-step */
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbwWITB_8ZVuPZflaqNqjJt6Lc0E3y6LsO_dI7dEQJYQDg9qC0uFxkQlAb_TGTPLb0Y-ZA/exec"; // Tempel URL Web App Apps Script setelah deploy.
+  "https://script.google.com/macros/s/AKfycbz3GtAFiDZT531BByuECpLWpZbSfkknsWKQbglfnKuBDHMiTEpynXn6_MMRaJ5FPihH4Q/exec"; // Tempel URL Web App Apps Script setelah deploy.
 const state = { step: 0, refs: {}, rapor: {} };
 const panels = [...document.querySelectorAll("[data-panel]")];
 const stepTitles = [
@@ -190,7 +190,33 @@ function buildRapor() {
       scoreSubjects.forEach((subject) => {
         const key = `${cls}|${semester}|${subject}`;
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${subject}</td><td><input type="number" min="0" max="100" step="any" inputmode="decimal" aria-label="${subject} nilai P" data-score="${key}|P"></td><td><input type="number" min="0" max="100" step="any" inputmode="decimal" aria-label="${subject} nilai K" data-score="${key}|K"></td>`;
+
+        tr.innerHTML = `
+          <td>${subject}</td>
+          <td>
+            <input
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="Contoh: 80,9"
+              aria-label="${subject} nilai P"
+              data-score="${key}|P"
+              data-score-decimal
+            >
+          </td>
+          <td>
+            <input
+              type="text"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="Contoh: 80,9"
+              aria-label="${subject} nilai K"
+              data-score="${key}|K"
+              data-score-decimal
+            >
+          </td>
+        `;
+
         tbody.appendChild(tr);
       });
       table.appendChild(tbody);
@@ -1219,7 +1245,7 @@ function showRegistrationSuccess(result) {
   const nomorPendaftaran =
     registrationData.nomor_pendaftaran || "Belum tersedia";
 
-  const idCalon = registrationData.id_calon || "Belum tersedia";
+  const namaCalon = registrationData.nama_lengkap || "Nama tidak tersedia";
 
   const successPage = document.createElement("section");
   successPage.id = "registration-success-page";
@@ -1242,11 +1268,11 @@ function showRegistrationSuccess(result) {
     <div class="success-number">
       <span>NOMOR PENDAFTARAN</span>
       <strong id="success-registration-number"></strong>
-    </div>
+    </div> 
 
     <div class="success-id">
-      <span>ID CALON</span>
-      <strong id="success-candidate-id"></strong>
+      <span>NAMA CALON</span>
+      <strong id="success-candidate-name"></strong>
     </div>
 
     <button type="button" id="new-registration-btn">
@@ -1262,7 +1288,7 @@ function showRegistrationSuccess(result) {
   document.getElementById("success-registration-number").textContent =
     nomorPendaftaran;
 
-  document.getElementById("success-candidate-id").textContent = idCalon;
+  document.getElementById("success-candidate-name").textContent = namaCalon;
 
   // Sembunyikan formulir, tetap pada halaman yang sama.
   registrationIntro.hidden = true;

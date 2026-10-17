@@ -144,24 +144,29 @@
                 ><span>Tanggal lahir <i>*</i></span
                 ><input name="TANGGAL_LAHIR" type="date" required
               /></label>
-              <label class="field"
-                ><span>Tinggi badan (cm)</span
-                ><input
+
+              <label class="field">
+                <span>Tinggi badan (cm)</span>
+                <input
                   name="TINGGI_BADAN_CM"
-                  type="number"
-                  min="1"
-                  max="250"
-                  inputmode="numeric"
-              /></label>
-              <label class="field"
-                ><span>Berat badan (kg)</span
-                ><input
-                  name="BERAT_BADAN_KG"
-                  type="number"
-                  min="1"
-                  max="300"
+                  type="text"
                   inputmode="decimal"
-              /></label>
+                  placeholder="Contoh: 170,5"
+                  autocomplete="off"
+                />
+              </label>
+
+              <label class="field">
+                <span>Berat badan (kg)</span>
+                <input
+                  name="BERAT_BADAN_KG"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Contoh: 55,8"
+                  autocomplete="off"
+                />
+              </label>
+
               <label class="field"
                 ><span>Pendidikan umum <i>*</i></span
                 ><select

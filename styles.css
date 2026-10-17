@@ -1064,3 +1064,31 @@ footer span {
     font-size: 17px;
   }
 }
+
+.success-reminder {
+  margin-top: 16px;
+  padding: 16px;
+  text-align: left;
+  background: #fffaf0;
+  border: 1px solid #f0d59a;
+  border-radius: 12px;
+}
+
+.success-reminder strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #805b13;
+  font-size: 14px;
+}
+
+.success-reminder p {
+  margin: 0 0 8px;
+  color: #374151;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.success-reminder small {
+  color: #806b43;
+  font-size: 12px;
+}

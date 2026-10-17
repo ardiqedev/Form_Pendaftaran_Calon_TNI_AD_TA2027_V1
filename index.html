@@ -33,6 +33,7 @@
           benar agar proses pendataan berjalan dengan lancar.
         </p>
 
+        <!-- INFORMASI PENDAFTARAN -->
         <div class="welcome-info">
           <div class="welcome-info-item">
             <span class="welcome-info-number">01</span>
@@ -61,6 +62,7 @@
           </div>
         </div>
 
+        <!-- PERSIAPAN -->
         <div class="welcome-notice">
           <strong>Persiapan Sebelum Memulai</strong>
           <p>
@@ -70,12 +72,52 @@
           </p>
         </div>
 
+        <!-- LOGIN PENDAFTAR LAMA -->
+        <div class="welcome-login">
+          <h2>Sudah Pernah Mendaftar?</h2>
+
+          <p>Masukkan nomor registrasi untuk mencari data pendaftaranmu.</p>
+
+          <label class="field">
+            <span>Nomor Registrasi</span>
+            <input
+              type="text"
+              id="login-nomor-registrasi"
+              name="NOMOR_PENDAFTARAN"
+              placeholder="Contoh: TNIAD-2026-000001"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+            />
+          </label>
+
+          <button
+            class="btn btn-primary"
+            id="login-registration-btn"
+            type="button"
+          >
+            Masuk & Edit Data <span>→</span>
+          </button>
+
+          <p
+            id="login-registration-message"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </div>
+
+        <!-- PEMISAH -->
+        <div class="welcome-divider">
+          <span>Belum pernah mendaftar?</span>
+        </div>
+
+        <!-- PENDAFTAR BARU -->
         <button
           class="btn btn-primary welcome-start"
           id="start-registration-btn"
           type="button"
         >
-          Mulai Pendaftaran <span>→</span>
+          Daftar Sekarang <span>→</span>
         </button>
 
         <p class="welcome-footnote">
@@ -144,24 +186,29 @@
                 ><span>Tanggal lahir <i>*</i></span
                 ><input name="TANGGAL_LAHIR" type="date" required
               /></label>
-              <label class="field"
-                ><span>Tinggi badan (cm)</span
-                ><input
+
+              <label class="field">
+                <span>Tinggi badan (cm)</span>
+                <input
                   name="TINGGI_BADAN_CM"
-                  type="number"
-                  min="1"
-                  max="250"
-                  inputmode="numeric"
-              /></label>
-              <label class="field"
-                ><span>Berat badan (kg)</span
-                ><input
-                  name="BERAT_BADAN_KG"
-                  type="number"
-                  min="1"
-                  max="300"
+                  type="text"
                   inputmode="decimal"
-              /></label>
+                  placeholder="Contoh: 170,5"
+                  autocomplete="off"
+                />
+              </label>
+
+              <label class="field">
+                <span>Berat badan (kg)</span>
+                <input
+                  name="BERAT_BADAN_KG"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="Contoh: 60,5"
+                  autocomplete="off"
+                />
+              </label>
+
               <label class="field"
                 ><span>Pendidikan umum <i>*</i></span
                 ><select
@@ -272,11 +319,13 @@
                   Alamat calon sesuai KTP <i>*</i>
                 </span>
 
+                <!-- PROVINSI -->
                 <label class="field">
                   <span>Provinsi <i>*</i></span>
                   <input
                     type="text"
                     id="provinsi-calon"
+                    name="PROVINSI_CALON"
                     placeholder="Ketik nama provinsi..."
                     autocomplete="off"
                     required
@@ -287,11 +336,13 @@
                   ></div>
                 </label>
 
+                <!-- KABUPATEN / KOTA -->
                 <label class="field">
                   <span>Kabupaten/Kota <i>*</i></span>
                   <input
                     type="text"
                     id="kabupaten-calon"
+                    name="KABUPATEN_KOTA_CALON"
                     placeholder="Pilih provinsi terlebih dahulu"
                     autocomplete="off"
                     required
@@ -306,23 +357,40 @@
                   </small>
                 </label>
 
+                <!-- KECAMATAN -->
                 <label class="field">
-                  <span>Alamat jalan / dusun / nomor rumah <i>*</i></span>
-                  <textarea
-                    id="detail-alamat-calon"
-                    rows="2"
-                    placeholder="Contoh: Jl. Merdeka No. 10, Dusun Krajan"
+                  <span>Kecamatan <i>*</i></span>
+                  <input
+                    type="text"
+                    id="kecamatan-calon"
+                    name="KECAMATAN_CALON"
+                    placeholder="Masukkan nama kecamatan"
                     data-uppercase
                     required
-                  ></textarea>
+                  />
                 </label>
 
+                <!-- KELURAHAN / DESA -->
+                <label class="field">
+                  <span>Kelurahan/Desa <i>*</i></span>
+                  <input
+                    type="text"
+                    id="kelurahan-calon"
+                    name="KELURAHAN_DESA_CALON"
+                    placeholder="Masukkan nama kelurahan/desa"
+                    data-uppercase
+                    required
+                  />
+                </label>
+
+                <!-- RT / RW -->
                 <div class="field-row">
                   <label class="field">
                     <span>RT</span>
                     <input
                       type="text"
                       id="rt-calon"
+                      name="RT_CALON"
                       placeholder="Contoh: 001"
                       inputmode="numeric"
                     />
@@ -333,13 +401,14 @@
                     <input
                       type="text"
                       id="rw-calon"
+                      name="RW_CALON"
                       placeholder="Contoh: 002"
                       inputmode="numeric"
                     />
                   </label>
                 </div>
 
-                <!-- Field ini mempertahankan kontrak data backend -->
+                <!-- KONTRAK DATA BACKEND LAMA -->
                 <input type="hidden" name="ALAMAT_CALON" />
               </div>
 
@@ -430,6 +499,7 @@
                   ><span>Kesatuan/instansi ayah</span
                   ><input name="KESATUAN_BAPAK" data-uppercase
                 /></label>
+
                 <!-- ALAMAT BAPAK -->
                 <div
                   class="field span-2 alamat-keluarga-group"
@@ -437,11 +507,13 @@
                 >
                   <span class="field-label">Alamat ayah sesuai KTP</span>
 
+                  <!-- PROVINSI -->
                   <label class="field">
                     <span>Provinsi</span>
                     <input
                       type="text"
                       id="provinsi-bapak"
+                      name="PROVINSI_BAPAK"
                       autocomplete="off"
                       placeholder="Ketik nama provinsi..."
                     />
@@ -451,11 +523,13 @@
                     ></div>
                   </label>
 
+                  <!-- KABUPATEN / KOTA -->
                   <label class="field">
                     <span>Kabupaten/Kota</span>
                     <input
                       type="text"
                       id="kabupaten-bapak"
+                      name="KABUPATEN_KOTA_BAPAK"
                       autocomplete="off"
                       placeholder="Pilih provinsi terlebih dahulu"
                       disabled
@@ -464,31 +538,61 @@
                       id="kabupaten-bapak-options"
                       class="autocomplete-options hidden"
                     ></div>
-                    <small id="kabupaten-bapak-info"
-                      >Pilih provinsi terlebih dahulu.</small
-                    >
+                    <small id="kabupaten-bapak-info">
+                      Pilih provinsi terlebih dahulu.
+                    </small>
                   </label>
 
+                  <!-- KECAMATAN -->
                   <label class="field">
-                    <span>Jalan / Dusun / Nomor Rumah</span>
-                    <textarea
-                      id="detail-alamat-bapak"
-                      rows="2"
+                    <span>Kecamatan</span>
+                    <input
+                      type="text"
+                      id="kecamatan-bapak"
+                      name="KECAMATAN_BAPAK"
+                      placeholder="Masukkan nama kecamatan"
                       data-uppercase
-                    ></textarea>
+                    />
                   </label>
 
+                  <!-- KELURAHAN / DESA -->
+                  <label class="field">
+                    <span>Kelurahan/Desa</span>
+                    <input
+                      type="text"
+                      id="kelurahan-bapak"
+                      name="KELURAHAN_DESA_BAPAK"
+                      placeholder="Masukkan nama kelurahan/desa"
+                      data-uppercase
+                    />
+                  </label>
+
+                  <!-- RT / RW -->
                   <div class="field-row">
                     <label class="field">
                       <span>RT</span>
-                      <input id="rt-bapak" inputmode="numeric" />
+                      <input
+                        type="text"
+                        id="rt-bapak"
+                        name="RT_BAPAK"
+                        placeholder="Contoh: 001"
+                        inputmode="numeric"
+                      />
                     </label>
+
                     <label class="field">
                       <span>RW</span>
-                      <input id="rw-bapak" inputmode="numeric" />
+                      <input
+                        type="text"
+                        id="rw-bapak"
+                        name="RW_BAPAK"
+                        placeholder="Contoh: 002"
+                        inputmode="numeric"
+                      />
                     </label>
                   </div>
 
+                  <!-- KONTRAK DATA BACKEND -->
                   <input type="hidden" name="ALAMAT_BAPAK" />
                 </div>
               </div>
@@ -529,6 +633,7 @@
                   ><span>Kesatuan/instansi ibu</span
                   ><input name="KESATUAN_IBU" data-uppercase
                 /></label>
+
                 <!-- ALAMAT IBU -->
                 <div
                   class="field span-2 alamat-keluarga-group"
@@ -536,11 +641,13 @@
                 >
                   <span class="field-label">Alamat ibu sesuai KTP</span>
 
+                  <!-- PROVINSI -->
                   <label class="field">
                     <span>Provinsi</span>
                     <input
                       type="text"
                       id="provinsi-ibu"
+                      name="PROVINSI_IBU"
                       autocomplete="off"
                       placeholder="Ketik nama provinsi..."
                     />
@@ -550,11 +657,13 @@
                     ></div>
                   </label>
 
+                  <!-- KABUPATEN / KOTA -->
                   <label class="field">
                     <span>Kabupaten/Kota</span>
                     <input
                       type="text"
                       id="kabupaten-ibu"
+                      name="KABUPATEN_KOTA_IBU"
                       autocomplete="off"
                       placeholder="Pilih provinsi terlebih dahulu"
                       disabled
@@ -563,31 +672,61 @@
                       id="kabupaten-ibu-options"
                       class="autocomplete-options hidden"
                     ></div>
-                    <small id="kabupaten-ibu-info"
-                      >Pilih provinsi terlebih dahulu.</small
-                    >
+                    <small id="kabupaten-ibu-info">
+                      Pilih provinsi terlebih dahulu.
+                    </small>
                   </label>
 
+                  <!-- KECAMATAN -->
                   <label class="field">
-                    <span>Jalan / Dusun / Nomor Rumah</span>
-                    <textarea
-                      id="detail-alamat-ibu"
-                      rows="2"
+                    <span>Kecamatan</span>
+                    <input
+                      type="text"
+                      id="kecamatan-ibu"
+                      name="KECAMATAN_IBU"
+                      placeholder="Masukkan nama kecamatan"
                       data-uppercase
-                    ></textarea>
+                    />
                   </label>
 
+                  <!-- KELURAHAN / DESA -->
+                  <label class="field">
+                    <span>Kelurahan/Desa</span>
+                    <input
+                      type="text"
+                      id="kelurahan-ibu"
+                      name="KELURAHAN_DESA_IBU"
+                      placeholder="Masukkan nama kelurahan/desa"
+                      data-uppercase
+                    />
+                  </label>
+
+                  <!-- RT / RW -->
                   <div class="field-row">
                     <label class="field">
                       <span>RT</span>
-                      <input id="rt-ibu" inputmode="numeric" />
+                      <input
+                        type="text"
+                        id="rt-ibu"
+                        name="RT_IBU"
+                        placeholder="Contoh: 001"
+                        inputmode="numeric"
+                      />
                     </label>
+
                     <label class="field">
                       <span>RW</span>
-                      <input id="rw-ibu" inputmode="numeric" />
+                      <input
+                        type="text"
+                        id="rw-ibu"
+                        name="RW_IBU"
+                        placeholder="Contoh: 002"
+                        inputmode="numeric"
+                      />
                     </label>
                   </div>
 
+                  <!-- KONTRAK DATA BACKEND -->
                   <input type="hidden" name="ALAMAT_IBU" />
                 </div>
               </div>
@@ -685,11 +824,13 @@
                 >
                   <span class="field-label">Alamat wali sesuai KTP</span>
 
+                  <!-- PROVINSI -->
                   <label class="field">
                     <span>Provinsi</span>
                     <input
                       type="text"
                       id="provinsi-wali"
+                      name="PROVINSI_WALI"
                       autocomplete="off"
                       placeholder="Ketik nama provinsi..."
                     />
@@ -699,11 +840,13 @@
                     ></div>
                   </label>
 
+                  <!-- KABUPATEN / KOTA -->
                   <label class="field">
                     <span>Kabupaten/Kota</span>
                     <input
                       type="text"
                       id="kabupaten-wali"
+                      name="KABUPATEN_KOTA_WALI"
                       autocomplete="off"
                       placeholder="Pilih provinsi terlebih dahulu"
                       disabled
@@ -712,31 +855,61 @@
                       id="kabupaten-wali-options"
                       class="autocomplete-options hidden"
                     ></div>
-                    <small id="kabupaten-wali-info"
-                      >Pilih provinsi terlebih dahulu.</small
-                    >
+                    <small id="kabupaten-wali-info">
+                      Pilih provinsi terlebih dahulu.
+                    </small>
                   </label>
 
+                  <!-- KECAMATAN -->
                   <label class="field">
-                    <span>Jalan / Dusun / Nomor Rumah</span>
-                    <textarea
-                      id="detail-alamat-wali"
-                      rows="2"
+                    <span>Kecamatan</span>
+                    <input
+                      type="text"
+                      id="kecamatan-wali"
+                      name="KECAMATAN_WALI"
+                      placeholder="Masukkan nama kecamatan"
                       data-uppercase
-                    ></textarea>
+                    />
                   </label>
 
+                  <!-- KELURAHAN / DESA -->
+                  <label class="field">
+                    <span>Kelurahan/Desa</span>
+                    <input
+                      type="text"
+                      id="kelurahan-wali"
+                      name="KELURAHAN_DESA_WALI"
+                      placeholder="Masukkan nama kelurahan/desa"
+                      data-uppercase
+                    />
+                  </label>
+
+                  <!-- RT / RW -->
                   <div class="field-row">
                     <label class="field">
                       <span>RT</span>
-                      <input id="rt-wali" inputmode="numeric" />
+                      <input
+                        type="text"
+                        id="rt-wali"
+                        name="RT_WALI"
+                        placeholder="Contoh: 001"
+                        inputmode="numeric"
+                      />
                     </label>
+
                     <label class="field">
                       <span>RW</span>
-                      <input id="rw-wali" inputmode="numeric" />
+                      <input
+                        type="text"
+                        id="rw-wali"
+                        name="RW_WALI"
+                        placeholder="Contoh: 002"
+                        inputmode="numeric"
+                      />
                     </label>
                   </div>
 
+                  <!-- KONTRAK DATA BACKEND -->
                   <input type="hidden" name="ALAMAT_WALI" />
                 </div>
               </div>
@@ -856,15 +1029,17 @@
                   step="1"
                   required
               /></label>
-              <label class="field"
-                ><span>Kriteria prestasi nasional</span
-                ><select
+
+              <label class="field">
+                <span>Kriteria prestasi nasional</span>
+                <input
+                  type="text"
                   name="KRITERIA_PRESTASI_NASIONAL"
                   data-ref="KRITERIA_PRESTASI_NASIONAL"
-                >
-                  <option value="">Pilih jika ada</option>
-                </select></label
-              >
+                  placeholder="Masukkan kriteria prestasi nasional jika ada"
+                />
+              </label>
+
               <label class="field span-2"
                 ><span>Motivasi menjadi prajurit</span
                 ><textarea name="MOTIVASI_CALON" rows="3"></textarea>

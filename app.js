@@ -1,6 +1,6 @@
 /* Form Pendaftaran Calon TNI AD TA 2027 — operator, multi-step */
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbz3GtAFiDZT531BByuECpLWpZbSfkknsWKQbglfnKuBDHMiTEpynXn6_MMRaJ5FPihH4Q/exec"; // Tempel URL Web App Apps Script setelah deploy.
+  "https://script.google.com/macros/s/AKfycbwr_P8MtWYD0pc2Zm6vOQ4JkNPNEZ6rdLIPZTwInbT9B-YPj2N9wA_zcSnUpWI4ajGEhQ/exec"; // Tempel URL Web App Apps Script setelah deploy.
 const state = { step: 0, refs: {}, rapor: {} };
 const panels = [...document.querySelectorAll("[data-panel]")];
 const stepTitles = [
@@ -28,23 +28,45 @@ function normalizeCategory(value) {
 }
 
 function setOptions(select, values) {
+  if (!select) {
+    console.warn("setOptions: elemen select tidak ditemukan.");
+    return;
+  }
+
   const placeholder =
     select.dataset.placeholder ||
     (select.options[0] ? select.options[0].textContent : "Pilih opsi");
 
+  // Lindungi dropdown dari data yang bukan array.
+  if (!Array.isArray(values)) {
+    console.warn("setOptions: values bukan array.", {
+      select: select.name || select.id,
+      values,
+    });
+
+    values = [];
+  }
+
   select.replaceChildren(new Option(placeholder, ""));
 
   values.forEach((item) => {
+    if (item == null) return;
+
     const opt = document.createElement("option");
 
-    if (typeof item === "string") {
-      opt.value = item;
-      opt.textContent = item;
+    if (typeof item === "string" || typeof item === "number") {
+      opt.value = String(item);
+      opt.textContent = String(item);
+    } else if (typeof item === "object") {
+      opt.value = String(
+        item.value ?? item.code ?? item.KODE_OPSI ?? item.LABEL_OPSI ?? "",
+      );
+
+      opt.textContent = String(
+        item.label ?? item.LABEL_OPSI ?? item.value ?? item.code ?? "",
+      );
     } else {
-      // Backend idealnya mengirim value=KODE_OPSI dan label=LABEL_OPSI.
-      opt.value =
-        item.value ?? item.code ?? item.KODE_OPSI ?? item.LABEL_OPSI ?? "";
-      opt.textContent = item.label ?? item.LABEL_OPSI ?? item.value ?? "";
+      return;
     }
 
     if (opt.value) select.appendChild(opt);
@@ -66,7 +88,7 @@ function localRefFallback(category) {
 }
 
 async function loadReferences() {
-  const selects = [...document.querySelectorAll("[data-ref]")];
+  const selects = [...document.querySelectorAll("select[data-ref]")];
   const controller = new AbortController();
 
   // Batasi waktu tunggu request maksimal 15 detik.
@@ -125,7 +147,14 @@ async function loadReferences() {
   });
 
   // Isi seluruh dropdown referensi.
+
+  // Isi seluruh dropdown referensi.
   selects.forEach((select) => {
+    if (!(select instanceof HTMLSelectElement)) {
+      console.warn("Elemen referensi bukan SELECT yang valid:", select);
+      return;
+    }
+
     const category = normalizeCategory(select.dataset.ref);
 
     const options =
@@ -157,6 +186,235 @@ async function loadReferences() {
       );
     }
   });
+}
+
+/* =========================================
+   EDIT / LANJUTKAN PENDAFTARAN LAMA
+========================================= */
+
+state.editMode = false;
+state.editRegistration = null;
+
+const saveBtn = document.getElementById("save-btn");
+
+if (saveBtn) {
+  saveBtn.textContent = "Simpan Perubahan";
+}
+
+function initEditRegistration() {
+  const loginButton = document.getElementById("login-registration-btn");
+
+  if (!loginButton || loginButton.dataset.editListenerAttached === "true") {
+    return;
+  }
+
+  loginButton.addEventListener("click", searchExistingRegistration);
+  loginButton.dataset.editListenerAttached = "true";
+}
+
+async function searchExistingRegistration() {
+  const input = document.getElementById("login-nomor-registrasi");
+  const button = document.getElementById("login-registration-btn");
+  const status = document.getElementById("login-registration-message");
+
+  if (!input || !button || !status) {
+    console.error("Elemen pencarian pendaftaran tidak ditemukan.", {
+      input: !!input,
+      button: !!button,
+      status: !!status,
+    });
+    return;
+  }
+
+  const nomor = input.value.trim().toUpperCase();
+
+  if (!/^TNIAD-\d{4}-\d{6}$/.test(nomor)) {
+    status.textContent = "Format nomor registrasi belum benar.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Mencari data pendaftaran...";
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify({
+        action: "getCandidateForEdit",
+        nomor_pendaftaran: nomor,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.ok || !result.data) {
+      throw new Error(
+        result.error?.message ||
+          result.error ||
+          result.message ||
+          "Data pendaftaran tidak ditemukan.",
+      );
+    }
+
+    const data = result.data;
+
+    if (!data.calon || !data.pendaftaran) {
+      throw new Error("Data calon atau pendaftaran tidak lengkap.");
+    }
+
+    // Pastikan referensi dan opsi dropdown sudah tersedia.
+    if (!registrationInitialized) {
+      buildYears();
+      buildRapor();
+      await loadReferences();
+      updateConditionals();
+      registrationInitialized = true;
+    }
+
+    fillExistingRegistration(data);
+
+    state.editMode = true;
+    state.editRegistration = {
+      ID_CALON: data.calon.ID_CALON,
+      ID_PENDAFTARAN: data.pendaftaran.ID_PENDAFTARAN,
+      NOMOR_PENDAFTARAN: data.pendaftaran.NOMOR_PENDAFTARAN,
+    };
+
+    if (welcomePage) welcomePage.hidden = true;
+
+    const editPanel = document.getElementById("edit-registration-panel");
+    if (editPanel) editPanel.hidden = true;
+
+    if (registrationIntro) registrationIntro.hidden = false;
+    if (registrationFormCard) registrationFormCard.hidden = false;
+
+    showStep(0);
+
+    status.textContent = "Data berhasil dimuat.";
+    showToast("Data lama berhasil dimuat. Periksa sebelum mengedit.");
+  } catch (error) {
+    console.error("Pencarian pendaftaran gagal:", error);
+    status.textContent = error.message || "Pencarian gagal.";
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function fillExistingRegistration(data) {
+  const calon = data.calon || {};
+  const pendaftaran = data.pendaftaran || {};
+  console.log("DATA KELUARGA:", {
+    provinsi: calon.PROVINSI_BAPAK,
+    kabupaten: calon.KABUPATEN_KOTA_BAPAK,
+    alamat: calon.ALAMAT_BAPAK,
+  });
+
+  console.log(
+    "INPUT KABUPATEN BAPAK:",
+    document.getElementById("kabupaten-bapak")?.value,
+  );
+
+  // Gabungkan data calon dan pendaftaran.
+  const combined = { ...calon, ...pendaftaran };
+
+  Object.entries(combined).forEach(([name, value]) => {
+    const control = field(name);
+
+    if (!control || control.dataset.score !== undefined) return;
+    if (control.disabled || control.type === "file") return;
+
+    const normalizedValue = String(value ?? "");
+
+    if (control instanceof HTMLSelectElement) {
+      const optionExists = [...control.options].some(
+        (option) => option.value === normalizedValue,
+      );
+
+      if (normalizedValue && !optionExists) {
+        control.add(new Option(normalizedValue, normalizedValue));
+      }
+    }
+
+    control.value = normalizedValue;
+  });
+
+  // Isi nilai rapor.
+  document.querySelectorAll("[data-score]").forEach((input) => {
+    const [kelas, semester, mapel, jenis] = input.dataset.score.split("|");
+
+    const row = (data.NILAI_RAPORT || []).find(
+      (item) =>
+        String(item.KELAS).toUpperCase() === kelas &&
+        String(item.SEMESTER).toUpperCase() === semester &&
+        String(item.MATA_PELAJARAN).toUpperCase() === mapel,
+    );
+
+    input.value = row ? String(jenis === "P" ? row.NILAI_P : row.NILAI_K) : "";
+  });
+
+  // Pulihkan field tambahan "Lainnya".
+  [
+    ["JURUSAN", "jurusan-lain"],
+    ["SUKU", "suku-lain"],
+  ].forEach(([name, id]) => {
+    const select = field(name);
+    const input = document.getElementById(id);
+
+    if (!select || !input) return;
+
+    const nilai = String(calon[name] || "");
+
+    const exists = [...select.options].some((option) => option.value === nilai);
+
+    if (nilai && !exists) {
+      select.value = "Lainnya";
+      input.value = nilai;
+      input.classList.remove("hidden");
+    }
+  });
+
+  // Perbarui visibilitas field kondisional.
+  updateConditionals();
+
+  // Pulihkan autocomplete alamat calon.
+  window.pulihkanWilayahCalon?.(
+    calon.PROVINSI_CALON || "",
+    calon.KABUPATEN_KOTA_CALON || "",
+  );
+
+  // Pulihkan autocomplete alamat keluarga.
+  // Pulihkan autocomplete alamat keluarga dari data backend.
+  ["BAPAK", "IBU", "WALI"].forEach((jenis) => {
+    const suffix = jenis.toLowerCase();
+
+    const provinsi = calon[`PROVINSI_${jenis}`] || "";
+
+    const kabupaten = calon[`KABUPATEN_KOTA_${jenis}`] || "";
+
+    const provinsiInput = document.getElementById(`provinsi-${suffix}`);
+
+    const kabupatenInput = document.getElementById(`kabupaten-${suffix}`);
+
+    if (provinsiInput) provinsiInput.value = provinsi;
+    if (kabupatenInput) kabupatenInput.value = kabupaten;
+
+    window.pulihkanWilayahKeluarga?.[jenis]?.(provinsi, kabupaten);
+  });
+
+  // Bersihkan status validasi lama.
+  form.querySelectorAll(".invalid").forEach((el) => {
+    el.classList.remove("invalid");
+  });
+}
+
+// Inisialisasi panel pencarian.
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initEditRegistration);
+} else {
+  initEditRegistration();
 }
 
 function buildYears() {
@@ -483,7 +741,17 @@ function collectData() {
     "NAMA_SEKOLAH",
     "ALAMAT_SEKOLAH",
     "SUKU",
+
+    // ALAMAT CALON
     "ALAMAT_CALON",
+    "PROVINSI_CALON",
+    "KABUPATEN_KOTA_CALON",
+    "KECAMATAN_CALON",
+    "KELURAHAN_DESA_CALON",
+    "RT_CALON",
+    "RW_CALON",
+
+    // DATA KELUARGA
     "NAMA_BAPAK_KANDUNG",
     "NAMA_IBU_KANDUNG",
     "NAMA_WALI",
@@ -499,6 +767,7 @@ function collectData() {
     "PANGKAT_WALI",
     "JABATAN_WALI",
     "KESATUAN_WALI",
+
     // KELUARGA DARI AYAH
     "NAMA_KAKEK_AYAH",
     "NAMA_NENEK_AYAH",
@@ -508,12 +777,36 @@ function collectData() {
     "NAMA_KAKEK_IBU",
     "NAMA_NENEK_IBU",
     "ALAMAT_KAKEK_NENEK_IBU",
+
+    // ALAMAT TERSTRUKTUR KELUARGA
+    "PROVINSI_BAPAK",
+    "KABUPATEN_KOTA_BAPAK",
+    "KECAMATAN_BAPAK",
+    "KELURAHAN_DESA_BAPAK",
+    "RT_BAPAK",
+    "RW_BAPAK",
+
+    "PROVINSI_IBU",
+    "KABUPATEN_KOTA_IBU",
+    "KECAMATAN_IBU",
+    "KELURAHAN_DESA_IBU",
+    "RT_IBU",
+    "RW_IBU",
+
+    "PROVINSI_WALI",
+    "KABUPATEN_KOTA_WALI",
+    "KECAMATAN_WALI",
+    "KELURAHAN_DESA_WALI",
+    "RT_WALI",
+    "RW_WALI",
+
+    // DATA PEMBINA
     "PANGKAT_BABINSA",
     "NAMA_BABINSA",
     "KODIM_DOMISILI",
   ].forEach((key) => {
     if (data[key]) {
-      data[key] = data[key].toUpperCase();
+      data[key] = String(data[key]).toUpperCase();
     }
   });
 
@@ -544,6 +837,7 @@ function collectData() {
     const value = String(select.value || "")
       .trim()
       .toLowerCase();
+
     const label = String(select.selectedOptions?.[0]?.textContent || "")
       .trim()
       .toLowerCase();
@@ -567,6 +861,15 @@ function collectData() {
   data.NOMOR_KK = String(data.NOMOR_KK || "");
   data.NIK = String(data.NIK || "");
   data.NOMOR_BPJS = String(data.NOMOR_BPJS || "");
+
+  // Angka desimal: dukung koma maupun titik
+  data.TINGGI_BADAN_CM = String(data.TINGGI_BADAN_CM ?? "")
+    .trim()
+    .replace(",", ".");
+
+  data.BERAT_BADAN_KG = String(data.BERAT_BADAN_KG ?? "")
+    .trim()
+    .replace(",", ".");
 
   // =====================================
   // 4. KUMPULKAN NILAI RAPOR
@@ -597,7 +900,56 @@ function collectData() {
       data.NILAI_RAPORT.push(record);
     }
 
-    record[jenis === "P" ? "NILAI_P" : "NILAI_K"] = el.value;
+    record[jenis === "P" ? "NILAI_P" : "NILAI_K"] = String(
+      el.value ?? "",
+    ).trim();
+  });
+
+  // =====================================
+  // 5. PASTIKAN ALAMAT TERSIMPAN TERSTRUKTUR
+  // =====================================
+
+  const alamatConfigs = [
+    {
+      suffix: "CALON",
+      kolomAlamat: "ALAMAT_CALON",
+    },
+    {
+      suffix: "BAPAK",
+      kolomAlamat: "ALAMAT_BAPAK",
+    },
+    {
+      suffix: "IBU",
+      kolomAlamat: "ALAMAT_IBU",
+    },
+    {
+      suffix: "WALI",
+      kolomAlamat: "ALAMAT_WALI",
+    },
+  ];
+
+  alamatConfigs.forEach(({ suffix, kolomAlamat }) => {
+    const kolomWilayah = [
+      `PROVINSI_${suffix}`,
+      `KABUPATEN_KOTA_${suffix}`,
+      `KECAMATAN_${suffix}`,
+      `KELURAHAN_DESA_${suffix}`,
+      `RT_${suffix}`,
+      `RW_${suffix}`,
+    ];
+
+    // Simpan setiap bagian alamat secara terpisah.
+    kolomWilayah.forEach((key) => {
+      data[key] = String(data[key] || "")
+        .trim()
+        .toUpperCase();
+    });
+
+    // ALAMAT_* tetap dipertahankan untuk kompatibilitas.
+    // Kolom ini tidak lagi menjadi satu-satunya sumber alamat.
+    data[kolomAlamat] = String(data[kolomAlamat] || "")
+      .trim()
+      .toUpperCase();
   });
 
   return data;
@@ -788,13 +1140,16 @@ function renderReview() {
 function initAlamatCalon() {
   const provinsiInput = document.getElementById("provinsi-calon");
   const provinsiOptions = document.getElementById("provinsi-calon-options");
+
   const kabupatenInput = document.getElementById("kabupaten-calon");
   const kabupatenOptions = document.getElementById("kabupaten-calon-options");
   const kabupatenInfo = document.getElementById("kabupaten-calon-info");
 
-  const detailInput = document.getElementById("detail-alamat-calon");
+  const kecamatanInput = document.getElementById("kecamatan-calon");
+  const kelurahanInput = document.getElementById("kelurahan-calon");
   const rtInput = document.getElementById("rt-calon");
   const rwInput = document.getElementById("rw-calon");
+
   const alamatHidden = document.querySelector('[name="ALAMAT_CALON"]');
 
   if (
@@ -802,7 +1157,9 @@ function initAlamatCalon() {
     !provinsiOptions ||
     !kabupatenInput ||
     !kabupatenOptions ||
-    !detailInput ||
+    !kabupatenInfo ||
+    !kecamatanInput ||
+    !kelurahanInput ||
     !rtInput ||
     !rwInput ||
     !alamatHidden ||
@@ -817,6 +1174,61 @@ function initAlamatCalon() {
   let provinsiTerpilih = null;
   let kabupatenTerpilih = null;
 
+  // Pulihkan state wilayah saat data lama dimuat untuk diedit.
+  function pulihkanWilayahCalon(provinsi, kabupaten) {
+    const namaProvinsi = String(provinsi || "").trim();
+    const namaKabupaten = String(kabupaten || "").trim();
+
+    provinsiTerpilih = null;
+    kabupatenTerpilih = null;
+
+    if (!namaProvinsi) {
+      kabupatenInput.disabled = true;
+      kabupatenInput.placeholder = "Pilih provinsi terlebih dahulu";
+      return;
+    }
+
+    const daftarProvinsi = window.WilayahIndonesia.cariProvinsi(namaProvinsi);
+
+    provinsiTerpilih =
+      daftarProvinsi.find(
+        (item) => item.nama.toUpperCase() === namaProvinsi.toUpperCase(),
+      ) || null;
+
+    // Jika provinsi cocok dengan dataset, gunakan objek aslinya.
+    if (provinsiTerpilih) {
+      provinsiInput.value = provinsiTerpilih.nama;
+    } else {
+      // Tetap pertahankan nama provinsi dari data lama.
+      provinsiInput.value = namaProvinsi;
+    }
+
+    kabupatenInput.value = namaKabupaten;
+    kabupatenInput.disabled = false;
+    kabupatenInput.placeholder = "Ketik kabupaten/kota...";
+
+    if (provinsiTerpilih?.kode === "35" && namaKabupaten) {
+      const daftarKabupaten = window.WilayahIndonesia.cariKabupatenKota(
+        namaKabupaten,
+        provinsiTerpilih.kode,
+      );
+
+      kabupatenTerpilih =
+        daftarKabupaten.find(
+          (item) => item.nama.toUpperCase() === namaKabupaten.toUpperCase(),
+        ) || null;
+
+      kabupatenInfo.textContent = kabupatenTerpilih
+        ? "Kabupaten/kota terpilih."
+        : "Data lama dipertahankan. Periksa kembali kabupaten/kota.";
+    } else {
+      kabupatenInfo.textContent =
+        "Data lama dipertahankan. Dataset autocomplete provinsi ini belum tersedia.";
+    }
+
+    perbaruiAlamat();
+  }
+
   function tutupOptions(container) {
     container.classList.add("hidden");
     container.replaceChildren();
@@ -829,6 +1241,7 @@ function initAlamatCalon() {
       const empty = document.createElement("div");
       empty.className = "autocomplete-empty";
       empty.textContent = "Wilayah tidak ditemukan.";
+
       container.appendChild(empty);
       container.classList.remove("hidden");
       return;
@@ -836,6 +1249,7 @@ function initAlamatCalon() {
 
     daftar.forEach((wilayah) => {
       const button = document.createElement("button");
+
       button.type = "button";
       button.className = "autocomplete-option";
       button.textContent = wilayah.nama;
@@ -852,50 +1266,75 @@ function initAlamatCalon() {
     container.classList.remove("hidden");
   }
 
-  function perbaruiAlamat() {
-    const bagian = [
-      detailInput.value.trim(),
-      rtInput.value.trim() ? "RT " + rtInput.value.trim() : "",
-      rwInput.value.trim() ? "RW " + rwInput.value.trim() : "",
-      kabupatenTerpilih ? kabupatenTerpilih.nama : "",
-      provinsiTerpilih ? provinsiTerpilih.nama : "",
-    ].filter(Boolean);
+  /* =====================================
+     SUSUN ALAMAT GABUNGAN
+  ===================================== */
 
-    alamatHidden.value = bagian.join(", ").toUpperCase();
+  /* =====================================
+     SUSUN ALAMAT GABUNGAN
+  ===================================== */
+
+  function perbaruiAlamat() {
+    alamatHidden.value = [
+      kelurahanInput.value.trim(),
+      kecamatanInput.value.trim(),
+      rtInput.value.trim() ? `RT ${rtInput.value.trim()}` : "",
+      rwInput.value.trim() ? `RW ${rwInput.value.trim()}` : "",
+      kabupatenInput.value.trim(),
+      provinsiInput.value.trim(),
+    ]
+      .filter(Boolean)
+      .join(", ")
+      .toUpperCase();
   }
+
+  /* =====================================
+     PILIH PROVINSI
+  ===================================== */
+
+  function pilihProvinsi(wilayah) {
+    provinsiTerpilih = wilayah;
+    kabupatenTerpilih = null;
+
+    provinsiInput.value = wilayah.nama;
+
+    kabupatenInput.value = "";
+    kabupatenInput.disabled = false;
+    kabupatenInput.placeholder = "Ketik kabupaten/kota...";
+
+    kabupatenInfo.textContent =
+      wilayah.kode === "35"
+        ? "Pilih kabupaten/kota dari saran yang tersedia."
+        : "Dataset kabupaten/kota belum tersedia untuk provinsi ini. Ketik nama secara manual.";
+
+    tutupOptions(provinsiOptions);
+    tutupOptions(kabupatenOptions);
+
+    perbaruiAlamat();
+  }
+
+  /* =====================================
+     AUTOCOMPLETE PROVINSI
+  ===================================== */
 
   provinsiInput.addEventListener("input", () => {
     const query = provinsiInput.value.trim();
 
     provinsiTerpilih = null;
     kabupatenTerpilih = null;
+
     kabupatenInput.value = "";
     kabupatenInput.disabled = true;
     kabupatenInput.placeholder = "Pilih provinsi terlebih dahulu";
 
     kabupatenInfo.textContent = "Pilih provinsi terlebih dahulu.";
+
     perbaruiAlamat();
 
     tampilkanOptions(
       provinsiOptions,
       window.WilayahIndonesia.cariProvinsi(query),
-      (wilayah) => {
-        provinsiTerpilih = wilayah;
-        provinsiInput.value = wilayah.nama;
-
-        kabupatenInput.disabled = false;
-        kabupatenInput.value = "";
-        kabupatenInput.placeholder = "Ketik kabupaten/kota...";
-
-        if (wilayah.kode === "35") {
-          kabupatenInfo.textContent = "Pilih kabupaten/kota di Jawa Timur.";
-        } else {
-          kabupatenInfo.textContent =
-            "Dataset kabupaten/kota untuk provinsi ini belum tersedia. Silakan pilih Jawa Timur atau tambahkan datanya terlebih dahulu.";
-        }
-
-        perbaruiAlamat();
-      },
+      pilihProvinsi,
     );
   });
 
@@ -903,31 +1342,25 @@ function initAlamatCalon() {
     tampilkanOptions(
       provinsiOptions,
       window.WilayahIndonesia.cariProvinsi(provinsiInput.value),
-      (wilayah) => {
-        provinsiInput.value = wilayah.nama;
-        provinsiTerpilih = wilayah;
-        kabupatenTerpilih = null;
-        kabupatenInput.value = "";
-        kabupatenInput.disabled = false;
-
-        kabupatenInfo.textContent =
-          wilayah.kode === "35"
-            ? "Pilih kabupaten/kota di Jawa Timur."
-            : "Dataset kabupaten/kota untuk provinsi ini belum tersedia.";
-
-        perbaruiAlamat();
-      },
+      pilihProvinsi,
     );
   });
 
-  kabupatenInput.addEventListener("input", () => {
-    kabupatenTerpilih = null;
-    perbaruiAlamat();
+  /* =====================================
+     AUTOCOMPLETE KABUPATEN / KOTA
+  ===================================== */
 
-    if (!provinsiTerpilih || provinsiTerpilih.kode !== "35") {
-      kabupatenInfo.textContent =
-        "Kabupaten/kota untuk provinsi ini belum tersedia dalam dataset.";
+  function cariKabupatenKota() {
+    if (!provinsiTerpilih) {
       tutupOptions(kabupatenOptions);
+      return;
+    }
+
+    // Dataset autocomplete kabupaten/kota yang tersedia
+    // saat ini hanya mencakup Provinsi Jawa Timur (kode 35).
+    if (provinsiTerpilih.kode !== "35") {
+      tutupOptions(kabupatenOptions);
+      kabupatenInfo.textContent = "Ketik nama kabupaten/kota secara manual.";
       return;
     }
 
@@ -943,29 +1376,29 @@ function initAlamatCalon() {
         kabupatenInfo.textContent = "Kabupaten/kota terpilih.";
       },
     );
+  }
+
+  kabupatenInput.addEventListener("input", () => {
+    kabupatenTerpilih = null;
+    perbaruiAlamat();
+    cariKabupatenKota();
   });
 
   kabupatenInput.addEventListener("focus", () => {
-    if (!provinsiTerpilih || provinsiTerpilih.kode !== "35") return;
-
-    tampilkanOptions(
-      kabupatenOptions,
-      window.WilayahIndonesia.cariKabupatenKota(
-        kabupatenInput.value,
-        provinsiTerpilih.kode,
-      ),
-      (wilayah) => {
-        kabupatenTerpilih = wilayah;
-        kabupatenInput.value = wilayah.nama;
-        kabupatenInfo.textContent = "Kabupaten/kota terpilih.";
-        perbaruiAlamat();
-      },
-    );
+    cariKabupatenKota();
   });
 
-  [detailInput, rtInput, rwInput].forEach((input) => {
+  /* =====================================
+     INPUT KECAMATAN, KELURAHAN, RT, RW
+  ===================================== */
+
+  [kecamatanInput, kelurahanInput, rtInput, rwInput].forEach((input) => {
     input.addEventListener("input", perbaruiAlamat);
   });
+
+  /* =====================================
+     TUTUP SARAN SAAT KLIK DI LUAR
+  ===================================== */
 
   document.addEventListener("click", (event) => {
     if (
@@ -983,20 +1416,20 @@ function initAlamatCalon() {
     }
   });
 
-  const form = alamatHidden.form;
+  /* =====================================
+     PASTIKAN ALAMAT TERBARU SEBELUM SUBMIT
+  ===================================== */
 
-  if (form) {
-    form.addEventListener("submit", (event) => {
-      // Perbarui hasil gabungan alamat sebelum submit.
+  const candidateForm = alamatHidden.form;
+
+  if (candidateForm) {
+    candidateForm.addEventListener("submit", () => {
       perbaruiAlamat();
-
-      // Jangan validasi pilihan autocomplete di sini.
-      // Kabupaten/kota boleh diisi secara manual.
-      // Validasi field required tetap ditangani HTML.
     });
   }
 
   perbaruiAlamat();
+  window.pulihkanWilayahCalon = pulihkanWilayahCalon;
 }
 
 /* =========================================
@@ -1010,6 +1443,8 @@ function initAlamatKeluarga() {
     return;
   }
 
+  const wilayah = window.WilayahIndonesia;
+
   ["BAPAK", "IBU", "WALI"].forEach((jenis) => {
     const suffix = jenis.toLowerCase();
 
@@ -1017,57 +1452,82 @@ function initAlamatKeluarga() {
     const provinsiOptions = document.getElementById(
       `provinsi-${suffix}-options`,
     );
+
     const kabupatenInput = document.getElementById(`kabupaten-${suffix}`);
     const kabupatenOptions = document.getElementById(
       `kabupaten-${suffix}-options`,
     );
     const info = document.getElementById(`kabupaten-${suffix}-info`);
-    const detail = document.getElementById(`detail-alamat-${suffix}`);
+
+    const kecamatan = document.getElementById(`kecamatan-${suffix}`);
+
+    const kelurahan = document.getElementById(`kelurahan-${suffix}`);
     const rt = document.getElementById(`rt-${suffix}`);
     const rw = document.getElementById(`rw-${suffix}`);
+
     const output = document.querySelector(`[name="ALAMAT_${jenis}"]`);
 
-    if (
-      !provinsiInput ||
-      !provinsiOptions ||
-      !kabupatenInput ||
-      !kabupatenOptions ||
-      !info ||
-      !detail ||
-      !rt ||
-      !rw ||
-      !output
-    )
+    const elemenAlamat = {
+      provinsiInput,
+      provinsiOptions,
+      kabupatenInput,
+      kabupatenOptions,
+      info,
+      kecamatan,
+      kelurahan,
+      rt,
+      rw,
+      output,
+    };
+
+    const elemenHilang = Object.entries(elemenAlamat)
+      .filter(([, element]) => !element)
+      .map(([nama]) => nama);
+
+    if (elemenHilang.length > 0) {
+      console.warn(`Elemen alamat ${jenis} tidak ditemukan:`, elemenHilang);
       return;
+    }
 
     let provinsiTerpilih = null;
     let kabupatenTerpilih = null;
+
+    // =====================================
+    // TUTUP AUTOCOMPLETE
+    // =====================================
 
     function tutup(container) {
       container.classList.add("hidden");
       container.replaceChildren();
     }
 
+    // =====================================
+    // TAMPILKAN AUTOCOMPLETE
+    // =====================================
+
     function tampilkan(container, daftar, saatPilih) {
       container.replaceChildren();
 
-      if (!daftar.length) {
+      if (!daftar || daftar.length === 0) {
         const empty = document.createElement("div");
+
         empty.className = "autocomplete-empty";
         empty.textContent = "Wilayah tidak ditemukan.";
+
         container.appendChild(empty);
         container.classList.remove("hidden");
         return;
       }
 
-      daftar.forEach((wilayah) => {
+      daftar.forEach((item) => {
         const button = document.createElement("button");
+
         button.type = "button";
         button.className = "autocomplete-option";
-        button.textContent = wilayah.nama;
+        button.textContent = item.nama;
 
         button.addEventListener("click", () => {
-          saatPilih(wilayah);
+          saatPilih(item);
           tutup(container);
           perbaruiAlamat();
         });
@@ -1078,111 +1538,131 @@ function initAlamatKeluarga() {
       container.classList.remove("hidden");
     }
 
+    // =====================================
+    // SUSUN ALAMAT GABUNGAN
+    // =====================================
+
     function perbaruiAlamat() {
       output.value = [
-        detail.value.trim(),
+        kelurahan.value.trim(),
+        kecamatan.value.trim(),
         rt.value.trim() ? `RT ${rt.value.trim()}` : "",
         rw.value.trim() ? `RW ${rw.value.trim()}` : "",
-        kabupatenTerpilih?.nama || "",
-        provinsiTerpilih?.nama || "",
+        kabupatenInput.value.trim(),
+        provinsiInput.value.trim(),
       ]
         .filter(Boolean)
         .join(", ")
         .toUpperCase();
     }
 
-    function pilihProvinsi(wilayah) {
-      provinsiTerpilih = wilayah;
+    // =====================================
+    // PILIH PROVINSI
+    // =====================================
+
+    function pilihProvinsi(item) {
+      provinsiTerpilih = item;
       kabupatenTerpilih = null;
 
-      provinsiInput.value = wilayah.nama;
+      provinsiInput.value = item.nama;
 
-      // Kabupaten/kota selalu bisa diketik manual.
       kabupatenInput.value = "";
       kabupatenInput.disabled = false;
-      kabupatenInput.readOnly = false;
       kabupatenInput.placeholder = "Ketik kabupaten/kota...";
 
       info.textContent =
-        wilayah.kode === "35"
-          ? "Pilih dari saran atau ketik nama kabupaten/kota."
-          : "Dataset belum tersedia untuk provinsi ini. Ketik nama kabupaten/kota secara manual.";
+        item.kode === "35"
+          ? "Pilih kabupaten/kota dari saran yang tersedia."
+          : "Dataset kabupaten/kota belum tersedia untuk provinsi ini. Ketik nama secara manual.";
 
       tutup(provinsiOptions);
       tutup(kabupatenOptions);
+
       perbaruiAlamat();
     }
 
+    // =====================================
+    // AUTOCOMPLETE PROVINSI
+    // =====================================
+
+    function cariProvinsi() {
+      tampilkan(
+        provinsiOptions,
+        wilayah.cariProvinsi(provinsiInput.value.trim()),
+        pilihProvinsi,
+      );
+    }
+
+    provinsiInput.addEventListener("focus", cariProvinsi);
+
+    provinsiInput.addEventListener("input", () => {
+      // Reset provinsi terpilih ketika teks diedit.
+      provinsiTerpilih = null;
+      kabupatenTerpilih = null;
+
+      kabupatenInput.value = "";
+      kabupatenInput.disabled = true;
+      kabupatenInput.placeholder = "Pilih provinsi terlebih dahulu";
+
+      info.textContent = "Pilih provinsi terlebih dahulu.";
+
+      tutup(kabupatenOptions);
+      perbaruiAlamat();
+      cariProvinsi();
+    });
+
+    // =====================================
+    // AUTOCOMPLETE KABUPATEN / KOTA
+    // =====================================
+
     function cariKabupaten() {
-      if (!provinsiTerpilih || provinsiTerpilih.kode !== "35") {
-        kabupatenTerpilih = null;
-        info.textContent =
-          "Data kabupaten/kota untuk provinsi ini belum tersedia.";
+      if (!provinsiTerpilih) {
         tutup(kabupatenOptions);
-        perbaruiAlamat();
+        info.textContent = "Pilih provinsi terlebih dahulu.";
+        return;
+      }
+
+      // Dataset kabupaten/kota yang tersedia:
+      // Provinsi Jawa Timur, kode 35.
+      if (provinsiTerpilih.kode !== "35") {
+        tutup(kabupatenOptions);
+        info.textContent = "Ketik nama kabupaten/kota secara manual.";
         return;
       }
 
       tampilkan(
         kabupatenOptions,
-        WilayahIndonesia.cariKabupatenKota(
-          kabupatenInput.value,
+        wilayah.cariKabupatenKota(
+          kabupatenInput.value.trim(),
           provinsiTerpilih.kode,
         ),
-        (wilayah) => {
-          kabupatenTerpilih = wilayah;
-          kabupatenInput.value = wilayah.nama;
+        (item) => {
+          kabupatenTerpilih = item;
+          kabupatenInput.value = item.nama;
+
           info.textContent = "Kabupaten/kota terpilih.";
+          tutup(kabupatenOptions);
         },
       );
     }
 
-    provinsiInput.addEventListener("focus", () => {
-      tampilkan(
-        provinsiOptions,
-        WilayahIndonesia.cariProvinsi(provinsiInput.value),
-        pilihProvinsi,
-      );
-    });
-
-    provinsiInput.addEventListener("input", () => {
-      provinsiTerpilih = null;
-      kabupatenTerpilih = null;
-      kabupatenInput.value = "";
-      kabupatenInput.disabled = true;
-      kabupatenInput.placeholder = "Pilih provinsi terlebih dahulu";
-      info.textContent = "Pilih provinsi terlebih dahulu.";
-      perbaruiAlamat();
-
-      tampilkan(
-        provinsiOptions,
-        WilayahIndonesia.cariProvinsi(provinsiInput.value),
-        pilihProvinsi,
-      );
-    });
-
     kabupatenInput.addEventListener("focus", () => {
-      if (!provinsiTerpilih || provinsiTerpilih.kode !== "35") {
-        return;
-      }
-
+      if (!provinsiTerpilih) return;
       cariKabupaten();
     });
 
-    kabupatenInput.addEventListener("focus", () => {
-      if (!provinsiTerpilih) return;
-
-      if (provinsiTerpilih.kode === "35") {
-        cariKabupaten();
-      }
-    });
-
     kabupatenInput.addEventListener("input", () => {
-      // Reset pilihan dataset saat teks diubah.
       kabupatenTerpilih = null;
+
       perbaruiAlamat();
 
-      if (!provinsiTerpilih || provinsiTerpilih.kode !== "35") {
+      if (!provinsiTerpilih) {
+        tutup(kabupatenOptions);
+        info.textContent = "Pilih provinsi terlebih dahulu.";
+        return;
+      }
+
+      if (provinsiTerpilih.kode !== "35") {
         tutup(kabupatenOptions);
         info.textContent = "Ketik nama kabupaten/kota secara manual.";
         return;
@@ -1191,9 +1671,17 @@ function initAlamatKeluarga() {
       cariKabupaten();
     });
 
-    [detail, rt, rw].forEach((input) => {
+    // =====================================
+    // INPUT DETAIL ALAMAT, RT, DAN RW
+    // =====================================
+
+    [kecamatan, kelurahan, rt, rw].forEach((input) => {
       input.addEventListener("input", perbaruiAlamat);
     });
+
+    // =====================================
+    // TUTUP SARAN SAAT KLIK DI LUAR
+    // =====================================
 
     document.addEventListener("click", (event) => {
       if (
@@ -1211,6 +1699,125 @@ function initAlamatKeluarga() {
       }
     });
 
+    // =====================================
+    // INISIALISASI AWAL — DUKUNG MODE EDIT
+    // =====================================
+
+    const namaProvinsiAwal = provinsiInput.value.trim();
+    const namaKabupatenAwal = kabupatenInput.value.trim();
+
+    if (namaProvinsiAwal) {
+      const daftarProvinsi = wilayah.cariProvinsi(namaProvinsiAwal);
+
+      const provinsiCocok = daftarProvinsi.find(
+        (item) => item.nama.toLowerCase() === namaProvinsiAwal.toLowerCase(),
+      );
+
+      if (provinsiCocok) {
+        provinsiTerpilih = provinsiCocok;
+        kabupatenInput.disabled = false;
+        kabupatenInput.placeholder = "Ketik kabupaten/kota...";
+
+        info.textContent =
+          provinsiCocok.kode === "35"
+            ? "Pilih kabupaten/kota dari saran yang tersedia."
+            : "Ketik nama kabupaten/kota secara manual.";
+
+        // Pulihkan kabupaten/kota yang sudah tersimpan.
+        if (namaKabupatenAwal) {
+          if (provinsiCocok.kode === "35") {
+            const daftarKabupaten = wilayah.cariKabupatenKota(
+              namaKabupatenAwal,
+              provinsiCocok.kode,
+            );
+
+            const kabupatenCocok = daftarKabupaten.find(
+              (item) =>
+                item.nama.toLowerCase() === namaKabupatenAwal.toLowerCase(),
+            );
+
+            if (kabupatenCocok) {
+              kabupatenTerpilih = kabupatenCocok;
+              kabupatenInput.value = kabupatenCocok.nama;
+              info.textContent = "Kabupaten/kota terpilih.";
+            }
+          } else {
+            // Untuk provinsi yang belum ada dalam dataset,
+            // pertahankan kabupaten/kota dari data lama.
+            kabupatenInput.value = namaKabupatenAwal;
+          }
+        }
+      }
+    }
+
+    if (!provinsiTerpilih) {
+      kabupatenInput.disabled = true;
+      kabupatenInput.placeholder = "Pilih provinsi terlebih dahulu";
+      info.textContent = "Pilih provinsi terlebih dahulu.";
+    }
+
+    // =====================================
+    // RESTORE WILAYAH — MODE EDIT
+    // =====================================
+
+    function pulihkanWilayah(provinsi, kabupaten) {
+      const namaProvinsi = String(provinsi || "").trim();
+      const namaKabupaten = String(kabupaten || "").trim();
+
+      provinsiInput.value = namaProvinsi;
+      kabupatenInput.value = namaKabupaten;
+
+      provinsiTerpilih = null;
+      kabupatenTerpilih = null;
+
+      const daftarProvinsi = wilayah.cariProvinsi(namaProvinsi);
+
+      const provinsiCocok = daftarProvinsi.find(
+        (item) => item.nama.toLowerCase() === namaProvinsi.toLowerCase(),
+      );
+
+      if (provinsiCocok) {
+        provinsiTerpilih = provinsiCocok;
+        kabupatenInput.disabled = false;
+        kabupatenInput.placeholder = "Ketik kabupaten/kota...";
+
+        if (provinsiCocok.kode === "35") {
+          const daftarKabupaten = wilayah.cariKabupatenKota(
+            namaKabupaten,
+            provinsiCocok.kode,
+          );
+
+          const kabupatenCocok = daftarKabupaten.find(
+            (item) => item.nama.toLowerCase() === namaKabupaten.toLowerCase(),
+          );
+
+          if (kabupatenCocok) {
+            kabupatenTerpilih = kabupatenCocok;
+            kabupatenInput.value = kabupatenCocok.nama;
+          }
+        }
+
+        info.textContent =
+          provinsiCocok.kode === "35"
+            ? "Kabupaten/kota terpilih."
+            : "Ketik nama kabupaten/kota secara manual.";
+      } else {
+        kabupatenInput.disabled = true;
+        kabupatenInput.placeholder = "Pilih provinsi terlebih dahulu";
+        info.textContent = "Pilih provinsi terlebih dahulu.";
+      }
+
+      tutup(provinsiOptions);
+      tutup(kabupatenOptions);
+      perbaruiAlamat();
+    }
+
+    // Daftarkan fungsi untuk masing-masing anggota keluarga.
+    window.pulihkanWilayahKeluarga = window.pulihkanWilayahKeluarga || {};
+
+    window.pulihkanWilayahKeluarga[jenis] = pulihkanWilayah;
+
+    // Inisialisasi alamat gabungan.
     perbaruiAlamat();
   });
 }
@@ -1275,6 +1882,20 @@ function showRegistrationSuccess(result) {
       <strong id="success-candidate-name"></strong>
     </div>
 
+    
+    <div class="success-reminder">
+      <strong>📌 Penting! Simpan Nomor Pendaftaran Anda</strong>
+      <p>
+        Simpan dan ingat nomor pendaftaran di atas. Gunakan nomor
+        tersebut untuk mencari kembali dan memperbarui data
+        pendaftaran Anda di kemudian hari.
+      </p>
+      <small>
+        Jangan sampai nomor pendaftaran Anda hilang.
+      </small>
+    </div>
+
+
     <button type="button" id="new-registration-btn">
       + Pendaftaran Baru
     </button>
@@ -1301,21 +1922,52 @@ function showRegistrationSuccess(result) {
       // Hapus tampilan sukses.
       successPage.remove();
 
-      // Kosongkan formulir untuk pendaftaran berikutnya.
+      // Reset data formulir.
       form.reset();
 
       document.querySelectorAll("[data-score]").forEach((input) => {
         input.value = "";
       });
 
+      state.step = 0;
+      state.rapor = {};
+      state.editMode = false;
+      state.editRegistration = null;
+
+      // Reset kondisi dan tampilan formulir.
       alertBox.classList.add("hidden");
-      document.getElementById("save-status").textContent = "";
+      document.getElementById("save-status").textContent = "Belum disimpan";
 
       updateConditionals();
       showStep(0);
 
-      registrationIntro.hidden = false;
-      registrationFormCard.hidden = false;
+      // Sembunyikan formulir.
+      registrationIntro.hidden = true;
+      registrationFormCard.hidden = true;
+
+      // Kembali ke halaman awal.
+      const welcomePage = document.getElementById("welcome-page");
+
+      if (welcomePage) {
+        welcomePage.hidden = false;
+      }
+
+      // Bersihkan nomor registrasi dan pesan pencarian.
+      const registrationInput = document.getElementById(
+        "login-nomor-registrasi",
+      );
+
+      if (registrationInput) {
+        registrationInput.value = "";
+      }
+
+      const registrationMessage = document.getElementById(
+        "login-registration-message",
+      );
+
+      if (registrationMessage) {
+        registrationMessage.textContent = "";
+      }
 
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -1330,19 +1982,33 @@ async function saveCandidate(data) {
   }
 
   const saveBtn = document.getElementById("save-btn");
+  const saveStatus = document.getElementById("save-status");
+  const isEdit = state.editMode === true;
 
   saveBtn.disabled = true;
-  saveBtn.textContent = "Menyimpan...";
-  document.getElementById("save-status").textContent = "Mengirim data...";
+  saveBtn.textContent = isEdit ? "Menyimpan perubahan..." : "Menyimpan...";
+  saveStatus.textContent = isEdit ? "Memperbarui data..." : "Mengirim data...";
 
   try {
+    const payload = isEdit
+      ? {
+          action: "updateCandidate",
+          ID_CALON: state.editRegistration.ID_CALON,
+          ID_PENDAFTARAN: state.editRegistration.ID_PENDAFTARAN,
+          NOMOR_PENDAFTARAN: state.editRegistration.NOMOR_PENDAFTARAN,
+          data,
+        }
+      : {
+          action: "createCandidate",
+          data,
+        };
+
     const res = await fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({
-        action: "createCandidate",
-        data,
-      }),
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify(payload),
     });
 
     const result = await res.json();
@@ -1352,23 +2018,30 @@ async function saveCandidate(data) {
         result.error?.message ||
           result.error ||
           result.message ||
-          "Penyimpanan gagal.",
+          (isEdit ? "Pembaruan data gagal." : "Penyimpanan gagal."),
       );
     }
 
-    document.getElementById("save-status").textContent = "Tersimpan";
+    saveStatus.textContent = isEdit ? "Perubahan tersimpan" : "Tersimpan";
 
-    // Tampilkan konfirmasi hanya setelah backend menyatakan berhasil.
     showRegistrationSuccess(result);
 
-    showToast("Pendaftaran berhasil disimpan.");
+    showToast(
+      isEdit
+        ? "Perubahan pendaftaran berhasil disimpan."
+        : "Pendaftaran berhasil disimpan.",
+    );
   } catch (err) {
+    console.error("Penyimpanan pendaftaran gagal:", err);
+
     showToast(err.message || "Tidak dapat menghubungi backend.", true);
 
-    document.getElementById("save-status").textContent = "Belum tersimpan";
+    saveStatus.textContent = "Belum tersimpan";
   } finally {
     saveBtn.disabled = false;
-    saveBtn.textContent = "Simpan pendaftaran";
+    saveBtn.textContent = state.editMode
+      ? "Simpan Perubahan"
+      : "Simpan pendaftaran";
   }
 }
 
@@ -1421,10 +2094,16 @@ startRegistrationBtn.addEventListener("click", async () => {
   startRegistrationBtn.textContent = "Menyiapkan formulir...";
 
   try {
+    console.log("[Pendaftaran] Mulai persiapan formulir");
+
     buildYears();
+    console.log("[Pendaftaran] buildYears berhasil");
+
     buildRapor();
+    console.log("[Pendaftaran] buildRapor berhasil");
 
     await loadReferences();
+    console.log("[Pendaftaran] loadReferences berhasil");
 
     updateConditionals();
     showStep(0);
@@ -1434,8 +2113,9 @@ startRegistrationBtn.addEventListener("click", async () => {
     registrationFormCard.hidden = false;
 
     registrationInitialized = true;
+    console.log("[Pendaftaran] Formulir siap");
   } catch (error) {
-    console.error("Gagal menyiapkan formulir:", error);
+    console.error("[Pendaftaran] Gagal menyiapkan formulir:", error);
 
     startRegistrationBtn.disabled = false;
     startRegistrationBtn.innerHTML = "Coba Lagi <span>→</span>";
@@ -1443,3 +2123,40 @@ startRegistrationBtn.addEventListener("click", async () => {
     showToast("Formulir belum berhasil disiapkan. Silakan coba lagi.", true);
   }
 });
+
+function pulihkanWilayahKeluarga() {
+  if (!window.WilayahIndonesia) {
+    console.error("Dataset WilayahIndonesia belum dimuat.");
+    return;
+  }
+
+  ["BAPAK", "IBU", "WALI"].forEach((jenis) => {
+    const suffix = jenis.toLowerCase();
+    const provinsiInput = document.getElementById(`provinsi-${suffix}`);
+    const kabupatenInput = document.getElementById(`kabupaten-${suffix}`);
+
+    if (!provinsiInput || !kabupatenInput) return;
+
+    const namaProvinsi = provinsiInput.value.trim();
+    const namaKabupaten = kabupatenInput.value.trim();
+
+    if (!namaProvinsi) {
+      kabupatenInput.disabled = true;
+      return;
+    }
+
+    const daftarProvinsi = window.WilayahIndonesia.cariProvinsi(namaProvinsi);
+
+    const provinsiCocok = daftarProvinsi.find(
+      (item) => item.nama.toLowerCase() === namaProvinsi.toLowerCase(),
+    );
+
+    if (provinsiCocok) {
+      kabupatenInput.disabled = false;
+      kabupatenInput.placeholder = "Ketik kabupaten/kota...";
+
+      // Pertahankan nilai lama; jangan kosongkan kabupaten saat edit.
+      kabupatenInput.value = namaKabupaten;
+    }
+  });
+}
